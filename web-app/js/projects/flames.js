@@ -2,7 +2,7 @@ function getFlamesHTML() {
     return `
         <div class="project-content">
             <h2>💖 FLAMES Game</h2>
-            <p class="project-desc">Discover your relationship status!</p>
+            <p class="project-desc">Discover your <strong>relationship status</strong> and calculate your <strong>Compatibility, Rivalry, </strong> or <strong>Nuisance</strong> factor!</p>
             <div class="flames-container">
                 <div class="flames-legend">
                     <div class="legend-item">F - Friends</div>
@@ -150,80 +150,75 @@ function getFlamesHTML() {
 }
 
 function initFlames() {
+    const calculateBtn = document.getElementById('calculateFlames');
     const name1Input = document.getElementById('name1');
     const name2Input = document.getElementById('name2');
-    const calculateBtn = document.getElementById('calculateFlames');
     const resultDiv = document.getElementById('flamesResult');
-    
+
+    if (!calculateBtn || !name1Input || !name2Input || !resultDiv) return;
+
     const relationshipData = {
-        'F': { name: 'Friends', emoji: '👫', message: 'You two are best friends forever!' },
-        'L': { name: 'Love', emoji: '❤️', message: 'True love is in the air!' },
-        'A': { name: 'Affection', emoji: '🥰', message: 'Sweet affection between you!' },
-        'M': { name: 'Marriage', emoji: '💍', message: 'Wedding bells are ringing!' },
-        'E': { name: 'Enemies', emoji: '😠', message: 'Maybe not the best match...' },
-        'S': { name: 'Siblings', emoji: '👨‍👩‍👧', message: 'Like brother and sister!' }
+        F: { rel: 'Friends', emoji: '🤝', metric: 'Bond Strength', vibe: 'A bond that never breaks!' },
+        L: { rel: 'Love', emoji: '❤️', metric: 'Compatibility Score', vibe: 'Pure romantic chemistry!' },
+        A: { rel: 'Affection', emoji: '😊', metric: 'Crush Intensity', vibe: 'Someone\'s blushing!' },
+        M: { rel: 'Marriage', emoji: '💍', metric: 'Marital Bliss', vibe: 'Start picking out the rings!' },
+        E: { rel: 'Enemies', emoji: '😈', metric: 'Rivalry Quotient', vibe: 'Keep your distance!' },
+        S: { rel: 'Siblings', emoji: '🏠', metric: 'Nuisance Factor', vibe: 'Stop touching my stuff!' }
     };
-    
+
     function calculateFlames() {
-        const name1 = name1Input.value.toLowerCase().replace(/\s/g, '');
-        const name2 = name2Input.value.toLowerCase().replace(/\s/g, '');
-        
-        if (!name1 || !name2) {
-            resultDiv.innerHTML = '<p style="color: var(--danger-color);">⚠️ Please enter both names!</p>';
+        const name1Raw = name1Input.value.trim();
+        const name2Raw = name2Input.value.trim();
+
+        if (!name1Raw || !name2Raw) {
+            resultDiv.innerHTML = '<p style="color: var(--error-color, #ff4d4d);">⚠️ Please enter both names!</p>';
             return;
         }
-        
-        const originalName1 = name1Input.value.trim();
-        const originalName2 = name2Input.value.trim();
-        
-        let name1List = name1.split('');
-        let name2List = name2.split('');
-        
-        const name1Copy = [...name1List];
-        for (let char of name1Copy) {
-            const index2 = name2List.indexOf(char);
-            if (index2 !== -1) {
-                name1List.splice(name1List.indexOf(char), 1);
-                name2List.splice(index2, 1);
+
+        const a = name1Raw.toLowerCase().replace(/\s+/g, '');
+        const b = name2Raw.toLowerCase().replace(/\s+/g, '');
+        const listA = a.split('');
+        const listB = b.split('');
+
+        for (let i = listA.length - 1; i >= 0; i--) {
+            const ch = listA[i];
+            const matchIndex = listB.indexOf(ch);
+            if (matchIndex !== -1) {
+                listA.splice(i, 1);
+                listB.splice(matchIndex, 1);
             }
         }
-        
-        const count = name1List.length + name2List.length;
-        
+
+        const count = listA.length + listB.length;
+        const totalLen = a.length + b.length;
+        const score = totalLen > 0 ? 30 + Math.round(((totalLen - count) / totalLen) * 70) : 0;
+
         const flames = ['F', 'L', 'A', 'M', 'E', 'S'];
         let index = 0;
-        
         while (flames.length > 1) {
             index = (index + count - 1) % flames.length;
             flames.splice(index, 1);
-            if (index === flames.length && flames.length > 0) {
-                index = 0;
-            }
         }
-        
-        const result = flames[0];
-        const relationship = relationshipData[result];
-        
+
+        const final = relationshipData[flames[0]];
+        const shareText = `🔥 FLAMES Report: ${name1Raw} + ${name2Raw} = ${final.rel} ${final.emoji}\n${final.metric}: ${score}%\nVibe: ${final.vibe}`;
+
         resultDiv.innerHTML = `
-            <div class="result-card">
-                <div class="result-emoji">${relationship.emoji}</div>
-                <div class="result-names">${originalName1} & ${originalName2}</div>
-                <div class="result-relationship">${relationship.name}</div>
-                <div class="result-details">
-                    <div>${relationship.message}</div>
-                    <div style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.9;">
-                        Remaining letters: ${count}
-                    </div>
+            <div class="result-card" style="text-align: center; animation: fadeIn 0.5s ease-out;">
+                <div class="result-emoji" style="font-size: 3rem; margin-bottom: 10px;">${final.emoji}</div>
+                <div class="result-names" style="font-weight: bold; letter-spacing: 1px; margin-bottom: 5px;">${name1Raw.toUpperCase()} & ${name2Raw.toUpperCase()}</div>
+                <div class="result-relationship" style="font-size: 1.5rem; color: var(--accent-color, #a29bfe); margin-bottom: 15px;">${final.rel}</div>
+                <div class="result-details" style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                    <div style="font-weight: bold;">${final.metric}: ${score}%</div>
+                    <div style="font-size: 0.85rem; font-style: italic; opacity: 0.9; margin-top: 5px;">"${final.vibe}"</div>
                 </div>
+                <button class="copy-btn" data-share="${shareText}" onclick="navigator.clipboard?.writeText(this.getAttribute('data-share'))" style="background: var(--accent-color, #6c5ce7); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; margin-top: 10px;">📋 Copy Result</button>
             </div>
         `;
     }
-    
+
     calculateBtn.addEventListener('click', calculateFlames);
-    name1Input.addEventListener('keypress', (e) => {
+    [name1Input, name2Input].forEach(input => input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') calculateFlames();
-    });
-    name2Input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') calculateFlames();
-    });
+    }));
 }
