@@ -303,6 +303,20 @@ Find all the hidden differences between two interactive canvases!
 
 </td>
 </tr>
+<tr>
+<td width="50%">
+
+#### 🐦 Flappy Game
+Fly through pipes and survive as long as possible!
+- 🦅 Interactive jump mechanics
+- 💥 Collision detection
+- 🏆 High score tracking
+```bash
+python games/Flappy-Game/Flappy-Game.py
+```
+
+</td>
+</tr>
 </table>
 
 ### 🔢 **Mathematical Wizards** - Explore Number Magic!

@@ -34,6 +34,7 @@ function getProjectHTML(projectName) {
         'simon-says': getSimonSaysHTML(),
         'spot-the-difference': getSpotTheDifferenceHTML(),
         'whack-a-mole': getWhackaMoleHTML(),
+        'flappy-game': getFlappyGameHTML(),
         '2048-game': get2048GameHTML(),
     };
 
@@ -70,6 +71,7 @@ function initializeProject(projectName) {
         'password-forge': initPasswordForge, // Register Password Forge initializer
         'spot-the-difference': initSpotTheDifference,
         'whack-a-mole': initWhackaMole,
+        'flappy-game': initFlappyGame,
         'simon-says': initSimonSays,
         '2048-game': init2048Game,
         'math-quiz': initMathQuiz,
@@ -8046,453 +8048,280 @@ function initSpotTheDifference() {
 }
 
 // ============================================
-// MATH QUIZ GAME
+// FLAPPY GAME (Turtle Port)
 // ============================================
-function getMathQuizHTML() {
+function getFlappyGameHTML() {
     return `
         <div class="project-content">
-            <h2>🧠 Math Quiz</h2>
-            <div class="quiz-container">
-                <div class="quiz-stats">
-                    <div class="stat">
-                        <span class="stat-label">Lives</span>
-                        <span class="stat-value" id="quizLives">❤️ ❤️ ❤️</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Score</span>
-                        <span class="stat-value" id="quizScore">0</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Streak</span>
-                        <span class="stat-value" id="quizStreak">🔥 0</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Level</span>
-                        <span class="stat-value" id="quizLevel">🟢 Easy</span>
+            <h2>🐦 Flappy Game</h2>
+            
+            <!-- START SCREEN -->
+            <div id="flappyStartScreen" class="flappy-start-screen">
+                <div class="flappy-instructions">
+                    <h3>🎮 How to Play</h3>
+                    <ul>
+                        <li>👆 <strong>Click anywhere</strong> on the game screen to make the bird jump!</li>
+                        <li>🚫 Avoid touching the neon purple pipes (balls).</li>
+                        <li>⚡ Stay within the top and bottom bounds of the screen.</li>
+                    </ul>
+                    
+                    <h3>🏆 Scoring System</h3>
+                    <ul>
+                        <li>⭐️ Earn <strong>1 point</strong> for every pipe you successfully dodge and pass.</li>
+                    </ul>
+                </div>
+                
+                <button id="flappyStartBtn" class="flappy-btn-action">▶️ Start Playing</button>
+            </div>
+
+            <!-- GAME SCREEN -->
+            <div id="flappyGameScreen" class="flappy-container" style="display: none;">
+                <div class="game-area">
+                    <div id="flappy-canvas-wrapper">
+                        <canvas id="flappyCanvas" width="400" height="400"></canvas>
                     </div>
                 </div>
-
-                <div class="quiz-board" id="quizBoard">
-                    <p class="quiz-start-msg">Press Start to Play! 🎮</p>
-                </div>
-
-                <div class="quiz-options" id="quizOptions"></div>
-
-                <div class="quiz-message" id="quizMessage"></div>
-
-                <div class="quiz-actions">
-                    <button class="btn-quiz-start" id="quizStartBtn">▶️ Start</button>
-                    <button class="btn-quiz-reset" id="quizResetBtn">🔄 Reset</button>
+                <div class="flappy-controls">
+                    <button id="flappyBackBtn" class="flappy-btn-action flappy-btn-secondary">🔙 Back to Menu</button>
                 </div>
             </div>
         </div>
-
         <style>
-            .quiz-container {
-                padding: 2rem;
-                max-width: 700px;
-                margin: 0 auto;
-                text-align: center;
-            }
-
-            .quiz-stats {
+            .flappy-start-screen {
                 display: flex;
-                gap: 1rem;
-                justify-content: center;
-                flex-wrap: wrap;
-                margin-bottom: 2rem;
-            }
-
-            .quiz-stats .stat {
-                background: var(--surface-color);
-                border: 2px solid var(--border-color);
-                border-radius: 12px;
-                padding: 0.8rem 1.2rem;
-                min-width: 120px;
-            }
-
-            .quiz-stats .stat-label {
-                display: block;
-                font-size: 0.85rem;
-                color: var(--text-secondary);
-                margin-bottom: 0.3rem;
-            }
-
-            .quiz-stats .stat-value {
-                display: block;
-                font-size: 1.3rem;
-                font-weight: bold;
-                color: var(--primary-color);
-            }
-
-            .quiz-board {
-                background: var(--surface-color);
-                border: 2px solid var(--border-color);
-                border-radius: 15px;
-                padding: 2rem;
-                margin-bottom: 1.5rem;
-                min-height: 100px;
-                display: flex;
+                flex-direction: column;
                 align-items: center;
-                justify-content: center;
-            }
-
-            .quiz-question {
-                font-size: 2rem;
-                font-weight: bold;
-                color: var(--text-color);
-            }
-
-            .quiz-start-msg {
-                font-size: 1.3rem;
-                color: var(--text-secondary);
-            }
-
-            .quiz-options {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1rem;
-                margin-bottom: 1.5rem;
-            }
-
-            .quiz-option-btn {
-                padding: 1rem;
-                font-size: 1.3rem;
-                font-weight: bold;
-                border: 2px solid var(--border-color);
-                border-radius: 12px;
+                gap: 2rem;
+                padding: 2rem;
                 background: var(--surface-color);
+                border-radius: 12px;
+                border: 1px solid var(--border-color);
+                margin: 1rem auto;
+                max-width: 500px;
+                box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            }
+            .flappy-instructions {
+                width: 100%;
                 color: var(--text-color);
-                cursor: pointer;
-                transition: var(--transition);
             }
-
-            .quiz-option-btn:hover {
-                border-color: var(--primary-color);
-                transform: scale(1.03);
-            }
-
-            .quiz-option-btn.correct {
-                background: var(--success-color);
-                color: white;
-                border-color: var(--success-color);
-            }
-
-            .quiz-option-btn.wrong {
-                background: var(--danger-color);
-                color: white;
-                border-color: var(--danger-color);
-            }
-
-            .quiz-option-btn:disabled {
-                cursor: not-allowed;
-                opacity: 0.7;
-            }
-
-            .quiz-message {
-                font-size: 1.2rem;
-                font-weight: bold;
-                min-height: 2rem;
-                margin-bottom: 1rem;
+            .flappy-instructions h3 {
                 color: var(--primary-color);
+                margin-bottom: 1rem;
+                border-bottom: 2px solid var(--border-color);
+                padding-bottom: 0.5rem;
             }
-
-            .quiz-actions {
+            .flappy-instructions ul {
+                margin-bottom: 1.5rem;
+                padding-left: 1.5rem;
+            }
+            .flappy-instructions li {
+                margin-bottom: 0.5rem;
+                line-height: 1.5;
+            }
+            .flappy-btn-action {
+                font-size: 1.2rem;
+                padding: 1rem 3rem;
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: transform 0.2s, background 0.2s;
+                font-weight: bold;
+                box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+            }
+            .flappy-btn-action:hover {
+                transform: translateY(-2px);
+                background: var(--primary-hover, #4f46e5);
+            }
+            .flappy-btn-secondary {
+                background: var(--surface-color);
+                border: 2px solid var(--border-color);
+                color: var(--text-color);
+                padding: 0.8rem 2rem;
+                font-size: 1rem;
+                box-shadow: none;
+            }
+            .flappy-btn-secondary:hover {
+                background: var(--border-color);
+            }
+            .flappy-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 10px;
+                font-family: Arial, sans-serif;
+                gap: 1.5rem;
+            }
+            #flappy-canvas-wrapper {
+                position: relative;
+                border: 3px solid var(--border-color);
+                background: #0f172a; /* Sleek dark slate background */
+                overflow: hidden;
+                width: 400px;
+                height: 400px;
+                border-radius: 8px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            }
+            #flappyCanvas {
+                display: block;
+                cursor: pointer;
+            }
+            .flappy-controls {
                 display: flex;
                 gap: 1rem;
                 justify-content: center;
-            }
-
-            .btn-quiz-start {
-                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-                color: white;
-                border: none;
-                padding: 0.9rem 2rem;
-                border-radius: 50px;
-                font-size: 1rem;
-                font-weight: bold;
-                cursor: pointer;
-                transition: var(--transition);
-            }
-
-            .btn-quiz-start:hover {
-                transform: scale(1.05);
-            }
-
-            .btn-quiz-reset {
-                background: var(--danger-color);
-                color: white;
-                border: none;
-                padding: 0.9rem 2rem;
-                border-radius: 50px;
-                font-size: 1rem;
-                font-weight: bold;
-                cursor: pointer;
-                transition: var(--transition);
-            }
-
-            .btn-quiz-reset:hover {
-                transform: scale(1.05);
-            }
-
-            .quiz-gameover {
-                font-size: 1.5rem;
-                font-weight: bold;
-                color: var(--danger-color);
+                width: 100%;
             }
         </style>
     `;
 }
 
-function initMathQuiz() {
-    // ── helpers ──────────────────────────────────────────
-    function isPrime(n) {
-        if (n < 2) return false;
-        for (let i = 2; i <= Math.sqrt(n); i++) {
-            if (n % i === 0) return false;
-        }
-        return true;
-    }
+function initFlappyGame() {
+    const startScreen = document.getElementById('flappyStartScreen');
+    const gameScreen = document.getElementById('flappyGameScreen');
+    const startBtn = document.getElementById('flappyStartBtn');
+    const backBtn = document.getElementById('flappyBackBtn');
 
-    function generateQuestion(difficulty) {
-        const easy = ['add', 'sub', 'mul', 'div'];
-        const medium = ['add', 'sub', 'mul', 'div', 'negative', 'decimal', 'percentage', 'missing'];
-        const hard = ['bodmas', 'prime', 'conversion', 'percentage', 'decimal'];
+    const canvas = document.getElementById('flappyCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
 
-        const pool = difficulty === 1 ? easy : difficulty === 2 ? medium : hard;
-        const type = pool[Math.floor(Math.random() * pool.length)];
+    // turtle coordinates: center is (0,0), x goes -200 to 200, y goes -200 to 200.
+    // canvas coordinates: top-left is (0,0), x goes 0 to 400, y goes 0 to 400.
+    // convert turtle(x,y) to canvas(cx,cy):
+    // cx = x + 200
+    // cy = 200 - y
 
-        let question, correct;
+    let bird = { x: 0, y: 0 };
+    let balls = [];
+    let score = 0;
+    let gameOver = false;
+    let gameLoop;
 
-        if (type === 'add') {
-            const [a, b] = [rand(1, 60), rand(1, 60)];
-            question = `${a} + ${b} = ?`;
-            correct = a + b;
+    function draw() {
+        //clear screen
+        ctx.fillStyle = '#0f172a'; // dark slate
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        } else if (type === 'sub') {
-            let [a, b] = [rand(1, 50), rand(1, 50)];
-            if (a < b) [a, b] = [b, a];
-            question = `${a} − ${b} = ?`;
-            correct = a - b;
+        //draw score
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Score: ${score}`, 10, 20);
 
-        } else if (type === 'mul') {
-            const [a, b] = [rand(2, 15), rand(2, 15)];
-            question = `${a} × ${b} = ?`;
-            correct = a * b;
-
-        } else if (type === 'div') {
-            const b = rand(2, 10);
-            const a = b * rand(2, 10);
-            question = `${a} ÷ ${b} = ?`;
-            correct = a / b;
-
-        } else if (type === 'negative') {
-            const a = -rand(1, 25);
-            const b = rand(1, 30);
-            question = `${a} + ${b} = ?`;
-            correct = a + b;
-
-        } else if (type === 'decimal') {
-            const a = Math.round(Math.random() * 90 + 10) / 10;
-            const b = Math.round(Math.random() * 90 + 10) / 10;
-            question = `${a} + ${b} = ?`;
-            correct = Math.round((a + b) * 10) / 10;
-
-        } else if (type === 'percentage') {
-            const pct = [10, 20, 25, 50][rand(0, 3)];
-            const num = [100, 200, 300, 400, 500][rand(0, 4)];
-            question = `${pct}% of ${num} = ?`;
-            correct = (pct / 100) * num;
-
-        } else if (type === 'missing') {
-            const [a, b] = [rand(1, 50), rand(1, 50)];
-            question = `__ + ${b} = ${a + b}, find __?`;
-            correct = a;
-
-        } else if (type === 'bodmas') {
-            const [a, b, c] = [rand(1, 20), rand(1, 20), rand(1, 5)];
-            question = `${a} + ${b} × ${c} = ?`;
-            correct = a + b * c;
-
-        } else if (type === 'prime') {
-            const num = rand(10, 50);
-            question = `Is ${num} prime? (1 = Yes, 2 = No)`;
-            correct = isPrime(num) ? 1 : 2;
-
-        } else if (type === 'conversion') {
-            const kind = rand(0, 2);
-            if (kind === 0) {
-                const h = rand(1, 10);
-                question = `${h} hour(s) = ? minutes`;
-                correct = h * 60;
-            } else if (kind === 1) {
-                const m = rand(1, 10);
-                question = `${m} minute(s) = ? seconds`;
-                correct = m * 60;
-            } else {
-                const d = rand(1, 7);
-                question = `${d} day(s) = ? hours`;
-                correct = d * 24;
-            }
-        } else {
-            const [a, b] = [rand(1, 30), rand(1, 30)];
-            question = `${a} + ${b} = ?`;
-            correct = a + b;
-        }
-
-        return { question, correct };
-    }
-
-    function generateOptions(correct) {
-        const opts = new Set([correct]);
-        let tries = 0;
-        while (opts.size < 4 && tries < 60) {
-            const fake = correct + rand(-15, 15);
-            if (fake !== correct) opts.add(fake);
-            tries++;
-        }
-        let extra = correct + 1;
-        while (opts.size < 4) { opts.add(extra++); }
-        return [...opts].sort(() => Math.random() - 0.5);
-    }
-
-    function rand(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    function getGrade(score, total) {
-        if (total === 0) return 'N/A';
-        const pct = (score / total) * 100;
-        if (pct >= 90) return 'A+ 🌟';
-        if (pct >= 80) return 'A 😄';
-        if (pct >= 70) return 'B+ 👍';
-        if (pct >= 60) return 'B 🙂';
-        if (pct >= 50) return 'C 😐';
-        return 'F 😢';
-    }
-
-    // ── DOM refs ─────────────────────────────────────────
-    const livesEl   = document.getElementById('quizLives');
-    const scoreEl   = document.getElementById('quizScore');
-    const streakEl  = document.getElementById('quizStreak');
-    const levelEl   = document.getElementById('quizLevel');
-    const board     = document.getElementById('quizBoard');
-    const optWrap   = document.getElementById('quizOptions');
-    const msgEl     = document.getElementById('quizMessage');
-    const startBtn  = document.getElementById('quizStartBtn');
-    const resetBtn  = document.getElementById('quizResetBtn');
-
-    // ── state ─────────────────────────────────────────────
-    let lives, score, streak, bestStreak, difficulty, total, gameRunning;
-
-    function resetState() {
-        lives = 3; score = 0; streak = 0;
-        bestStreak = 0; difficulty = 1;
-        total = 0; gameRunning = false;
-    }
-
-    function updateHUD() {
-        livesEl.textContent  = '❤️ '.repeat(lives) + '🖤 '.repeat(3 - lives);
-        scoreEl.textContent  = score;
-        streakEl.textContent = `🔥 ${streak}`;
-        const labels = { 1: '🟢 Easy', 2: '🟡 Medium', 3: '🔴 Hard' };
-        levelEl.textContent  = labels[difficulty];
-    }
-
-    function showQuestion() {
-        if (!gameRunning) return;
-
-        if (streak >= 6 && difficulty < 3) difficulty = 3;
-        else if (streak >= 3 && difficulty < 2) difficulty = 2;
-
-        const { question, correct } = generateQuestion(difficulty);
-        const options = generateOptions(correct);
-        const correctIdx = options.indexOf(correct);
-
-        board.innerHTML = `<p class="quiz-question">❓ ${question}</p>`;
-        optWrap.innerHTML = '';
-        msgEl.textContent = '';
-        total += 10;
-
-        options.forEach((opt, i) => {
-            const btn = document.createElement('button');
-            btn.className = 'quiz-option-btn';
-            btn.textContent = opt;
-            btn.addEventListener('click', () => handleAnswer(i, correctIdx, correct, opt));
-            optWrap.appendChild(btn);
+        //draw balls
+        ctx.fillStyle = '#8b5cf6'; // neon purple
+        balls.forEach(ball => {
+            let cx = ball.x + 200;
+            let cy = 200 - ball.y;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+            ctx.fill();
         });
 
-        updateHUD();
+        //draw bird
+        let bx = bird.x + 200;
+        let by = 200 - bird.y;
+
+        ctx.fillStyle = gameOver ? '#ef4444' : '#06b6d4'; // neon red or cyan
+        ctx.beginPath();
+        ctx.arc(bx, by, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        //draw game over text
+        if (gameOver) {
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 24px Arial';
+            ctx.fillText("💥 GAME OVER 💥", 200, 180);
+            ctx.font = 'normal 14px Arial';
+            ctx.fillText("🔄 Click anywhere to Play Again", 200, 220);
+        }
     }
 
-    function handleAnswer(chosen, correctIdx, correct, chosenVal) {
-        const btns = optWrap.querySelectorAll('.quiz-option-btn');
-        btns.forEach(b => b.disabled = true);
-        btns[correctIdx].classList.add('correct');
+    function inside(p) {
+        return -200 < p.x && p.x < 200 && -200 < p.y && p.y < 200;
+    }
 
-        if (chosen === correctIdx) {
-            streak++;
-            bestStreak = Math.max(bestStreak, streak);
-            score += 10;
-            let msg = `✅ Correct! +10`;
+    function move() {
+        if (gameOver) return;
 
-            if ([3, 6, 9].includes(streak)) {
-                score += 5;
-                total += 5;
-                msg += ` 🎉 Streak Bonus +5!`;
+        bird.y -= 5;
+
+        balls.forEach(ball => {
+            ball.x -= 3;
+        });
+
+        if (Math.floor(Math.random() * 10) === 0) {
+            let y = Math.floor(Math.random() * 398) - 199;
+            balls.push({ x: 199, y: y });
+        }
+
+        while (balls.length > 0 && !inside(balls[0])) {
+            balls.shift();
+            score += 1;
+        }
+
+        if (!inside(bird)) {
+            gameOver = true;
+            draw();
+            return;
+        }
+
+        for (let i = 0; i < balls.length; i++) {
+            let dx = balls[i].x - bird.x;
+            let dy = balls[i].y - bird.y;
+            let dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 15) {
+                gameOver = true;
+                draw();
+                return;
             }
-            msgEl.style.color = 'var(--success-color)';
-            msgEl.textContent = msg;
-
-        } else {
-            btns[chosen].classList.add('wrong');
-            lives--;
-            streak = 0;
-            msgEl.style.color = 'var(--danger-color)';
-            msgEl.textContent = `❌ Wrong! Answer was ${correct}`;
         }
 
-        updateHUD();
+        draw();
+    }
 
-        if (lives <= 0) {
-            setTimeout(gameOver, 900);
+    function resetGame() {
+        gameOver = false;
+        score = 0;
+        bird = { x: 0, y: 0 };
+        balls = [];
+        if (gameLoop) clearInterval(gameLoop);
+        gameLoop = setInterval(move, 50);
+        draw();
+    }
+
+    function tap() {
+        if (gameOver) {
+            resetGame();
         } else {
-            setTimeout(showQuestion, 1200);
+            bird.y += 30;
         }
     }
 
-    function gameOver() {
-        gameRunning = false;
-        optWrap.innerHTML = '';
-        board.innerHTML = `
-            <div>
-                <p class="quiz-gameover">💀 Game Over!</p>
-                <p>⭐ Score: ${score}</p>
-                <p>🔥 Best Streak: ${bestStreak}</p>
-                <p>🏆 Grade: ${getGrade(score, total)}</p>
-            </div>`;
-        msgEl.textContent = '';
-        startBtn.textContent = '▶️ Play Again';
-    }
+    canvas.addEventListener('mousedown', tap);
 
-    function startGame() {
-        resetState();
-        gameRunning = true;
-        startBtn.textContent = '▶️ Restart';
-        msgEl.textContent = '';
-        showQuestion();
-    }
-
-    resetState();
-    updateHUD();
-
-    startBtn.addEventListener('click', startGame);
-    resetBtn.addEventListener('click', () => {
-        resetState();
-        updateHUD();
-        board.innerHTML = '<p class="quiz-start-msg">Press Start to Play! 🎮</p>';
-        optWrap.innerHTML = '';
-        msgEl.textContent = '';
-        startBtn.textContent = '▶️ Start';
+    // UI Event Listeners
+    startBtn.addEventListener('click', () => {
+        startScreen.style.display = 'none';
+        gameScreen.style.display = 'flex';
+        resetGame(); // Start the game
     });
+
+    backBtn.addEventListener('click', () => {
+        gameScreen.style.display = 'none';
+        startScreen.style.display = 'flex';
+        if (gameLoop) clearInterval(gameLoop);
+    });
+
+    const modalCloseBtn = document.getElementById('modalClose');
+    if (modalCloseBtn) {
+        const cleanup = () => {
+            if (gameLoop) clearInterval(gameLoop);
+            modalCloseBtn.removeEventListener('click', cleanup);
+        };
+        modalCloseBtn.addEventListener('click', cleanup);
+    }
 }
