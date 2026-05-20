@@ -244,8 +244,15 @@ if (stickyFilterBar && heroSection) {
         currentCategory = category;
         syncStickyTabs(category);
         var visibleCount = 0;
+        var favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         projectCards.forEach(function (card) {
-            if (category === 'all' || card.getAttribute('data-category') === category) {
+            var cardCategory = card.getAttribute('data-category');
+            var projectName = card.getAttribute('data-project');
+            var isFavorite = favorites.includes(projectName);
+
+            if (category === 'all' || 
+                (category === 'favorites' && isFavorite) || 
+                (category !== 'favorites' && cardCategory === category)) {
                 card.style.display = '';
                 card.style.animation = prefersReducedMotion() ? 'none' : 'fadeIn 0.6s ease';
                 visibleCount++;
@@ -396,13 +403,18 @@ if (stickyFilterBar && heroSection) {
         localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
 
         var visibleCount = 0;
+        var favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         projectCards.forEach(function (card) {
             var category    = card.getAttribute('data-category');
             var title       = card.querySelector('h3').textContent.toLowerCase();
             var description = card.querySelector('p').textContent.toLowerCase();
             var tags        = (card.getAttribute('data-tags') || '').toLowerCase();
+            var projectName = card.getAttribute('data-project');
+            var isFavorite  = favorites.includes(projectName);
 
-            var categoryMatch = currentCategory === 'all' || category === currentCategory;
+            var categoryMatch = currentCategory === 'all' || 
+                                (currentCategory === 'favorites' && isFavorite) ||
+                                (currentCategory !== 'favorites' && category === currentCategory);
             var searchMatch   = title.includes(query) ||
                                 description.includes(query) ||
                                 tags.includes(query);
@@ -686,6 +698,38 @@ if (stickyFilterBar && heroSection) {
     // ── Wire Cards and Play Buttons ───────────────────────────────────
     projectCards.forEach(function (card) {
         var name = card.getAttribute('data-project');
+
+        var favBtn = document.createElement('button');
+        favBtn.className = 'btn-favorite';
+        favBtn.setAttribute('aria-label', 'Toggle favorite');
+        favBtn.innerHTML = '<i class="far fa-star"></i>';
+
+        var favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        if (favorites.includes(name)) {
+            favBtn.classList.add('active');
+            favBtn.innerHTML = '<i class="fas fa-star"></i>';
+        }
+
+        favBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+            var idx = favs.indexOf(name);
+            if (idx === -1) {
+                favs.push(name);
+                favBtn.classList.add('active');
+                favBtn.innerHTML = '<i class="fas fa-star"></i>';
+            } else {
+                favs.splice(idx, 1);
+                favBtn.classList.remove('active');
+                favBtn.innerHTML = '<i class="far fa-star"></i>';
+                if (currentCategory === 'favorites') {
+                    card.style.display = 'none';
+                }
+            }
+            localStorage.setItem('favorites', JSON.stringify(favs));
+        });
+        card.appendChild(favBtn);
+
         var play = card.querySelector('.btn-play');
         if (play) {
             play.setAttribute('aria-label', 'Open ' + name);
