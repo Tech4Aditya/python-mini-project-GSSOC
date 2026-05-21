@@ -27,7 +27,8 @@ function getTypingSpeedTesterHTML() {
 
             <button
                 id="startTypingBtn"
-                class="btn-play"
+                type="button"
+                class="btn-generate"
                 style="
                     margin-bottom: 20px;
                     font-weight: 700;
@@ -45,7 +46,8 @@ function getTypingSpeedTesterHTML() {
 
             <button
                 id="newSentenceBtn"
-                class="btn-play"
+                type="button"
+                class="btn-generate"
                 style="
                     margin-bottom: 20px;
                     margin-left: 10px;
@@ -120,11 +122,21 @@ function initTypingSpeedTester() {
     const result =
         document.getElementById("typingResult");
 
+    if (
+        !sentenceElement ||
+        !inputElement ||
+        !button ||
+        !newSentenceBtn ||
+        !result
+    ) {
+        return;
+    }
+
     let startTime = null;
     let currentSentence = "";
 
-    // Disable typing initially
     inputElement.disabled = true;
+    inputElement.setAttribute("aria-disabled", "true");
 
     function generateSentence() {
 
@@ -138,21 +150,19 @@ function initTypingSpeedTester() {
         sentenceElement.innerHTML =
             currentSentence
                 .split("")
-                .map(char =>
-                    `<span>${char}</span>`
-                )
+                .map(function (char) {
+                    return "<span>" + char + "</span>";
+                })
                 .join("");
 
         inputElement.value = "";
-
         inputElement.disabled = false;
-
+        inputElement.removeAttribute("aria-disabled");
         inputElement.focus();
 
         result.innerHTML = "";
-
-        startTime = new Date().getTime();
-    }   
+        startTime = Date.now();
+    }
 
     // Start Test
     button.onclick = function () {
@@ -165,21 +175,12 @@ function initTypingSpeedTester() {
         generateSentence();
     };
 
-    // Typing Event
     inputElement.addEventListener("input", function () {
 
-        if (!startTime) return;
+        if (!startTime || !currentSentence) return;
 
-        const typedText =
-            inputElement.value;
-
-        // Current time
-        const currentTime =
-            new Date().getTime();
-
-        // Total time in seconds
-        const totalTime =
-            (currentTime - startTime) / 1000;
+        const typedText = inputElement.value;
+        const totalTime = Math.max((Date.now() - startTime) / 1000, 0.001);
 
         // Correct characters
         let correctChars = 0;
@@ -190,6 +191,10 @@ function initTypingSpeedTester() {
 
         const spans = sentenceElement.querySelectorAll("span");
 
+        for (let i = 0; i < spans.length; i++) {
+            spans[i].style.color = "";
+        }
+
         for (let i = 0; i < typedText.length; i++) {
 
             if (
@@ -199,19 +204,20 @@ function initTypingSpeedTester() {
 
                 correctChars++;
 
-                spans[i].style.color = "#22c55e";
+                if (spans[i]) spans[i].style.color = "#22c55e";
 
             } else {
                 incorrectChars++;
-                spans[i].style.color = "#ef4444";
+                if (spans[i]) spans[i].style.color = "#ef4444";
             }
         }
-        
-        // Accuracy
+
         const accuracy =
-            Math.round(
-                (correctChars / currentSentence.length) * 100
-            );
+            currentSentence.length
+                ? Math.round(
+                    (correctChars / currentSentence.length) * 100
+                )
+                : 0;
 
         const mistakes = incorrectChars;
 
@@ -262,13 +268,9 @@ function initTypingSpeedTester() {
 
         `;
 
-        // LOCK TEST
         inputElement.disabled = true;
-
-        // REMOVE CURSOR
+        inputElement.setAttribute("aria-disabled", "true");
         inputElement.blur();
-
-        return;
         }
     });
 }
