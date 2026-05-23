@@ -39,6 +39,7 @@ function getProjectHTML(projectName) {
         '2048-game': () => get2048GameHTML(),
         'productive-pet': () => getProductivePetHTML(),
         'color-palette': () => getColorPaletteHTML(),
+        'caesar-cipher': () => getCaesarCipherHTML(),
     };
 
     try {
@@ -3276,7 +3277,8 @@ function initializeProject(projectName) {
         'simon-says': 'initSimonSays',
         '2048-game': 'init2048Game',
         'color-palette': 'initColorPalette',
-        'math-quiz': 'initMathQuiz'
+        'math-quiz': 'initMathQuiz',
+        'caesar-cipher': 'initCaesarCipher'
     };
     
     const initializerName = initializers[projectName];
