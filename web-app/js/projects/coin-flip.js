@@ -459,7 +459,7 @@ function initCoinFlip() {
             result.textContent = 'Predicted Tails! Ready to flip.';
         }
         
-        result.className = 'coin-result'; // reset any win/lose classes
+        result.className = 'coin-result';
         flipBtn.disabled = false;
     }
 
@@ -504,6 +504,9 @@ function initCoinFlip() {
         result.textContent = 'Flipping...';
         result.className = 'coin-result flipping';
         coinScene.classList.add('rolling');
+
+        // 🔊 Play coin flip sound as the animation starts
+        if (window.AudioManager) AudioManager.play('card_flip');
         
         const isHeads = Math.random() < 0.5;
         const flipResult = isHeads ? 'heads' : 'tails';
@@ -533,11 +536,17 @@ function initCoinFlip() {
                 }
                 result.textContent = isHeads ? '👑 Heads! Correct prediction! 🎉' : '🦅 Tails! Correct prediction! 🎉';
                 result.className = 'coin-result win';
+
+                // 🔊 Correct prediction — play win fanfare
+                if (window.AudioManager) AudioManager.play('game_win');
             } else {
                 losses++;
                 streak = 0;
                 result.textContent = isHeads ? '👑 Heads! Wrong prediction. 😢' : '🦅 Tails! Wrong prediction. 😢';
                 result.className = 'coin-result lose';
+
+                // 🔊 Wrong prediction — play wrong buzz
+                if (window.AudioManager) AudioManager.play('wrong');
             }
             
             // Persist scores
