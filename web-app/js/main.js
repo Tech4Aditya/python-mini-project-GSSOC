@@ -28,6 +28,14 @@ function escapeHtml(str) {
   return d.innerHTML;
 }
 
+function safeRun(fn) {
+  try {
+    fn();
+  } catch (e) {
+    console.error("Project initialization error:", e);
+  }
+}
+
 // ============================================
 // INFO MODAL FUNCTIONS
 // ============================================
@@ -411,6 +419,15 @@ document.addEventListener('DOMContentLoaded', function () {
           if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
           return;
         }
+    st.addEventListener("click", function () {
+      var category = st.getAttribute("data-category");
+
+      var pageCategory = document.body.getAttribute("data-page");
+      // FIX #1: Only redirect when on a subpage AND the clicked category
+      // is different from the current page. Without this guard, every click
+      // on the homepage (or any page with data-page set) triggered a redirect
+      // instead of filtering the grid in place.
+      if (pageCategory && category !== pageCategory) {
         var pageMap = {
           'all': 'index.html',
           'games': 'games.html',
@@ -420,6 +437,13 @@ document.addEventListener('DOMContentLoaded', function () {
           'playground': 'index.html?category=playground'
         };
         window.location.href = pageMap[category] || 'index.html';
+        return;
+      }
+
+      // If we're already on the matching subpage, just scroll to the grid
+      if (pageCategory && category === pageCategory) {
+        var grid = document.getElementById("projectsGrid");
+        if (grid) grid.scrollIntoView({ behavior: "smooth", block: "start" });
         return;
       }
 
@@ -835,6 +859,16 @@ document.addEventListener('DOMContentLoaded', function () {
       return !el.closest('[aria-hidden="true"]') && !el.classList.contains('visually-hidden');
     });
   }
+  var sel =
+    'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+  return Array.from(root.querySelectorAll(sel)).filter(function (el) {
+    return (
+      !el.closest('[aria-hidden="true"]') &&
+      !el.classList.contains("visually-hidden")
+    );
+  });
+}
 
   function trapFocus(modalEl) {
     var handler = function (e) {
@@ -954,6 +988,13 @@ if (projectContent) {
   /* ── Expose for inline use ────────────────────────────────── */
   window.openProjectSafe = openProjectSafe;
   window.closeProjectSafe = closeProjectSafe;
+
+  // FIX #3: Removed the duplicate delegated document click listener for
+  // ".btn-play" that used to live here. It conflicted with the per-card
+  // listeners wired below: the direct listener called stopPropagation(),
+  // which silently ate the event before the delegated one could fire,
+  // so neither handler reliably opened the modal. The per-card listeners
+  // below are sufficient and correct on their own.
 
   /* ═══════════════════════════════════════════════════════════════
      WIRE PROJECT CARDS
@@ -1310,8 +1351,57 @@ if (projectContent) {
       e.preventDefault();
       var cat = a.getAttribute('data-cat');
       var tab = document.querySelector('.sidebar-tab[data-category="' + cat + '"]');
+  // FIX #2: Footer links call tab.click() which triggers the sidebar tab
+  // handler. That handler now correctly filters in place on the homepage
+  // (fix #1), so footer links automatically work once fix #1 is applied.
+  // No additional changes needed here beyond the comment for clarity.
+  document.querySelectorAll(".footer-cat-link").forEach(function (link) {
+    link.addEventListener("click", function (e) {
+      e.preventDefault();
+
+      var cat = link.getAttribute("data-cat");
+      var tab = document.querySelector(
+        '.sidebar-tab[data-category="' + cat + '"]'
+      );
       if (tab) tab.click();
     });
   });
 
 });
+/* ── Scroll Progress Bar ───────────────────────────── */
+
+var progressBar = document.getElementById("scrollProgressBar");
+
+if (progressBar) {
+  let ticking = false;
+
+  function updateScrollProgress() {
+    var scrollTop =
+      window.scrollY || document.documentElement.scrollTop;
+
+    var docHeight =
+      document.documentElement.scrollHeight -
+      document.documentElement.clientHeight;
+
+    var progress = docHeight
+      ? (scrollTop / docHeight) * 100
+      : 0;
+
+    progressBar.style.width = progress + "%";
+
+    ticking = false;
+  }
+
+  window.addEventListener(
+    "scroll",
+    function () {
+      if (!ticking) {
+        requestAnimationFrame(updateScrollProgress);
+        ticking = true;
+      }
+    },
+    { passive: true }
+  );
+
+  updateScrollProgress();
+}
