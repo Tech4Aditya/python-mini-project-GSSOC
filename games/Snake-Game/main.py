@@ -82,15 +82,20 @@ class SnakeGame:
         if self.game_state == "IDLE":
             self.countdown()
             self.game_state = "PLAYING"
+            # Schedule the first tick after spacebar is pressed
+            self.screen.ontimer(self.tick, int(self.delay * 1000))
             
         elif self.game_state == "PLAYING":
             self.game_state = "PAUSED"
             self.game_text.clear()
             self.game_text.write("PAUSED", align="center", font=("Arial", 24, "bold"))
+            # Don't schedule next tick; game is paused
             
         elif self.game_state == "PAUSED":
             self.game_state = "PLAYING"
             self.game_text.clear()
+            # Resume ticking when unpaused
+            self.screen.ontimer(self.tick, int(self.delay * 1000))
             
         elif self.game_state == "GAME_OVER":
             self.snake.reset()
@@ -99,54 +104,62 @@ class SnakeGame:
             self.level = 1
             self.countdown()
             self.game_state = "PLAYING"
+            # Schedule the first tick after restart
+            self.screen.ontimer(self.tick, int(self.delay * 1000))
+
+    def tick(self):
+        """Single game tick - called via ontimer() to avoid busy-waiting."""
+        # Only process game logic if game is actively playing
+        if self.game_state != "PLAYING":
+            return
+
+        self.screen.update()
+
+        # Boundary collision
+        if self.snake.check_boundary_collision():
+            if self.pygame_installed:
+                self.gameover_sound.play()
+            self.game_text.write("GAME OVER - Press SPACE to Restart", align="center", font=("Arial", 20, "bold"))
+            self.game_state = "GAME_OVER"
+            return
+
+        # Food collision
+        if self.snake.head.distance(self.food.item) < COLLISION_DISTANCE:
+            self.food.reposition(self.snake)
+            self.snake.add_part()
+            self.scoreboard.increase()
+            if self.pygame_installed:
+                self.eat_sound.play()
+
+            if self.scoreboard.score % 5 == 0:
+                self.level += 1
+                self.delay -= 0.01
+                self.game_text.clear()
+                self.game_text.write(f"LEVEL {self.level}", align="center", font=("Arial", 24, "bold"))
+                self.screen.update()
+                time.sleep(0.5)
+                self.game_text.clear()
+
+        # Move snake
+        self.snake.move()
+
+        # Self collision
+        if self.snake.check_self_collision():
+            if self.pygame_installed:
+                self.gameover_sound.play()
+            self.game_text.write("GAME OVER - Press SPACE to Restart", align="center", font=("Arial", 20, "bold"))
+            self.game_state = "GAME_OVER"
+            return
+
+        # Schedule next tick
+        self.screen.ontimer(self.tick, int(self.delay * 1000))
 
     def run(self):
+        """Main entry point - display startup message and enter event loop."""
         self.game_text.write("Press SPACEBAR to Start", align="center", font=("Arial", 24, "bold"))
-
-        while True:
-            self.screen.update()
-
-            if self.game_state in ["IDLE", "PAUSED", "GAME_OVER"]:
-                time.sleep(0.1)
-                continue
-
-            # Boundary collision
-            if self.snake.check_boundary_collision():
-                if self.pygame_installed:
-                    self.gameover_sound.play()
-                self.game_text.write("GAME OVER - Press SPACE to Restart", align="center", font=("Arial", 20, "bold"))
-                self.game_state = "GAME_OVER"
-                continue
-
-            # Food collision
-            if self.snake.head.distance(self.food.item) < COLLISION_DISTANCE:
-                self.food.reposition(self.snake)
-                self.snake.add_part()
-                self.scoreboard.increase()
-                if self.pygame_installed:
-                    self.eat_sound.play()
-
-                if self.scoreboard.score % 5 == 0:
-                    self.level += 1
-                    self.delay -= 0.01
-                    self.game_text.clear()
-                    self.game_text.write(f"LEVEL {self.level}", align="center", font=("Arial", 24, "bold"))
-                    self.screen.update()
-                    time.sleep(0.5)
-                    self.game_text.clear()
-
-            # Move snake
-            self.snake.move()
-
-            # Self collision
-            if self.snake.check_self_collision():
-                if self.pygame_installed:
-                    self.gameover_sound.play()
-                self.game_text.write("GAME OVER - Press SPACE to Restart", align="center", font=("Arial", 20, "bold"))
-                self.game_state = "GAME_OVER"
-                continue
-
-            time.sleep(self.delay)
+        self.screen.update()
+        # Turtle event loop keeps ontimer() callbacks running
+        self.screen.mainloop()
 
 
 if __name__ == "__main__":
