@@ -52,151 +52,65 @@ function getProgressTrackerHTML() {
 }
 
 function initProgressTracker() {
+    const PROJECTS = {
+        '🎲 Games': ['Rock-Paper-Scissor','Dice-Rolling','Coin-Flip','Number-Guessing-Game','Hangman-Game','FLAMES-Game'],
+        '🔢 Math': ['Fibonacci-Series','Pascals-Triangle','Armstrong-Number','Simple-Calculator','Collatz-Conjecture','Prime-Number-Analyzer','Projectile-Motion-Game','Coordinate-to-Polar','Derivative-Calculator','AP-GP-AGP-HP-Recognizer'],
+        '🔐 Utilities': ['Text-to-Morse','Tower-of-Hanoi']
+    };
+    const TOTAL = Object.values(PROJECTS).flat().length;
     const KEY = 'pt_completed_v1';
-    const migrations = {
-        "Dice-Rolling": "Roling-Dice",
-        "Coin-Flip": "Flipping-toss",
-        "Pascals-Triangle": "Pascal-Triangle"
-    };
 
-    const load = () => {
-        try {
-            let list = JSON.parse(localStorage.getItem(KEY)) || [];
-            let mutated = false;
-            list = list.map(item => {
-                if (migrations[item]) {
-                    mutated = true;
-                    return migrations[item];
-                }
-                return item;
-            });
-            if (mutated) {
-                localStorage.setItem(KEY, JSON.stringify(list));
-            }
-            return list;
-        } catch {
-            return [];
-        }
-    };
+    const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } };
     const save = (l) => localStorage.setItem(KEY, JSON.stringify(l));
 
-    fetch('./projects_registry.json')
-        .then(response => response.json())
-        .then(data => {
-            const PROJECTS = {
-                '🎲 Games': [],
-                '🔢 Math': [],
-                '🔐 Utilities': []
-            };
-            const catMap = {
-                'games': '🎲 Games',
-                'math': '🔢 Math',
-                'utilities': '🔐 Utilities'
-            };
-            data.forEach(p => {
-                const catKey = catMap[p.category];
-                if (catKey) {
-                    const parts = p.path.split('/');
-                    if (parts.length >= 2) {
-                        const projName = parts[parts.length - 2];
-                        PROJECTS[catKey].push(projName);
-                    }
-                }
+    function render() {
+        const done = load();
+        const count = done.length;
+        const pct = Math.round((count / TOTAL) * 100);
+        document.getElementById('pt-bar-fill').style.width = pct + '%';
+        document.getElementById('pt-bar-label').textContent = count + ' / ' + TOTAL + ' completed';
+        document.getElementById('pt-s-done').textContent = count;
+        document.getElementById('pt-s-left').textContent = TOTAL - count;
+        document.getElementById('pt-s-pct').textContent = pct + '%';
+        const container = document.getElementById('pt-cats');
+        if (!container) return;
+        container.textContent = '';
+        for (const [cat, projects] of Object.entries(PROJECTS)) {
+            const catDone = projects.filter(p => done.includes(p)).length;
+            const sec = document.createElement('div');
+            sec.innerHTML = '<div class="pt-cat-title">' + cat + ' &nbsp;·&nbsp; ' + catDone + '/' + projects.length + '</div>';
+            const grid = document.createElement('div');
+            grid.className = 'pt-grid';
+            projects.forEach(name => {
+                const isDone = done.includes(name);
+                const card = document.createElement('div');
+                card.className = 'pt-card' + (isDone ? ' done' : '');
+                card.innerHTML = '<span class="pt-tick">' + (isDone ? '✅' : '⬜') + '</span><span class="pt-name">' + name + '</span>';
+                card.onclick = () => toggle(name);
+                grid.appendChild(card);
             });
+            sec.appendChild(grid);
+            container.appendChild(sec);
+        }
+    }
 
-            const TOTAL = Object.values(PROJECTS).flat().length;
+    function toggle(name) {
+        const list = load();
+        const idx = list.indexOf(name);
+        if (idx === -1) { list.push(name); showToast('🎊 "' + name + '" completed!'); if (list.length === TOTAL) showToast('🏅 All done!'); }
+        else { list.splice(idx, 1); showToast('↩ "' + name + '" unmarked'); }
+        save(list); render();
+    }
 
-            function render() {
-                const done = load();
-                const count = done.length;
-                const pct = Math.round((count / TOTAL) * 100);
-                
-                const barFill = document.getElementById('pt-bar-fill');
-                if (barFill) barFill.style.width = pct + '%';
-                
-                const barLabel = document.getElementById('pt-bar-label');
-                if (barLabel) barLabel.textContent = count + ' / ' + TOTAL + ' completed';
-                
-                const sDone = document.getElementById('pt-s-done');
-                if (sDone) sDone.textContent = count;
-                
-                const sLeft = document.getElementById('pt-s-left');
-                if (sLeft) sLeft.textContent = TOTAL - count;
-                
-                const sPct = document.getElementById('pt-s-pct');
-                if (sPct) sPct.textContent = pct + '%';
-                
-                const container = document.getElementById('pt-cats');
-                if (!container) return;
-                container.textContent = '';
-                
-                for (const [cat, projects] of Object.entries(PROJECTS)) {
-                    const catDone = projects.filter(p => done.includes(p)).length;
-                    const sec = document.createElement('div');
-                    
-                    const catTitle = document.createElement('div');
-                    catTitle.className = 'pt-cat-title';
-                    catTitle.innerHTML = cat + ' &nbsp;·&nbsp; ' + catDone + '/' + projects.length;
-                    sec.appendChild(catTitle);
-                    
-                    const grid = document.createElement('div');
-                    grid.className = 'pt-grid';
-                    projects.forEach(name => {
-                        const isDone = done.includes(name);
-                        const card = document.createElement('div');
-                        card.className = 'pt-card' + (isDone ? ' done' : '');
-                        card.innerHTML = '<span class="pt-tick">' + (isDone ? '✅' : '⬜') + '</span><span class="pt-name">' + name + '</span>';
-                        card.onclick = () => toggle(name);
-                        grid.appendChild(card);
-                    });
-                    sec.appendChild(grid);
-                    container.appendChild(sec);
-                }
-            }
-
-            function toggle(name) {
-                const list = load();
-                const idx = list.indexOf(name);
-                if (idx === -1) {
-                    list.push(name);
-                    showToast('🎊 "' + name + '" completed!');
-                    if (list.length === TOTAL) showToast('🏅 All done!');
-                } else {
-                    list.splice(idx, 1);
-                    showToast('↩ "' + name + '" unmarked');
-                }
-                save(list);
-                render();
-            }
-
-            window.ptSelectAll = function() {
-                save(Object.values(PROJECTS).flat());
-                render();
-                showToast('🏅 All marked done!');
-            };
-            window.ptClearAll = function() {
-                if (confirm('Reset all progress?')) {
-                    save([]);
-                    render();
-                    showToast('🗑 Progress cleared');
-                }
-            };
-
-            render();
-        })
-        .catch(err => {
-            console.error('Failed to load projects registry:', err);
-            const container = document.getElementById('pt-cats');
-            if (container) {
-                container.innerHTML = '<div style="text-align:center;color:red;padding:1rem;">⚠️ Error loading project tracker registry.</div>';
-            }
-        });
+    window.ptSelectAll = function() { save(Object.values(PROJECTS).flat()); render(); showToast('🏅 All marked done!'); };
+    window.ptClearAll = function() { if (confirm('Reset all progress?')) { save([]); render(); showToast('🗑 Progress cleared'); } };
 
     function showToast(msg) {
         const t = document.getElementById('pt-toast');
         if (!t) return;
-        t.textContent = msg;
-        t.classList.add('show');
+        t.textContent = msg; t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), 2800);
     }
+
+    render();
 }
