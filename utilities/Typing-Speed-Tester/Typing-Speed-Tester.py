@@ -90,7 +90,7 @@ while True:
     # Results
     print("\n🎉 ===== TEST COMPLETED ===== 🎉")
     print(f"⏱️ Time Taken : {time_taken:.2f} seconds")
-    print(f"🚀 Typing Speed : {wpm:.2f} WPM")
+    print(f"🚀 Net WPM      : {wpm:.2f} WPM")
     print(f"🎯 Accuracy : {accuracy:.2f}%")
     
     # Performance feedback
