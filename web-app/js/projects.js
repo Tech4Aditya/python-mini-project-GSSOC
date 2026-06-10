@@ -21,7 +21,8 @@ function getProjectHTML(projectName) {
         'derivative-calculator': getDerivativeCalculatorHTML(),
         'morse-code': getMorseCodeHTML(),
         'tower-of-hanoi': getTowerOfHanoiHTML(),
-        'nqueens' : getNQueensHTML()
+        'nqueens' : getNQueensHTML(),
+        'matrix-calculator': () => getMatrixCalculatorHTML()
     };
     
     return projects[projectName] || '<h2>Project Coming Soon!</h2>';
@@ -47,7 +48,8 @@ function initializeProject(projectName) {
         'derivative-calculator': initDerivativeCalculator,
         'morse-code': initMorseCode,
         'tower-of-hanoi': initTowerOfHanoi,
-        'nqueens' : initNQueens()
+        'nqueens' : initNQueens(),
+        'matrix-calculator': initMatrixCalculator
     };
     
     if (initializers[projectName]) {

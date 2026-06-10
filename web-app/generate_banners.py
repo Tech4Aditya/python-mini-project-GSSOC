@@ -378,6 +378,25 @@ def generate_banner(name, category, filename):
         v_draw.line([(550, 115), (250, 335)], fill=color_accent_dim, width=3)
         v_draw.rounded_rectangle([305, 160, 495, 290], radius=24, fill=(255,255,255,14), outline=color_accent, width=3)
         v_draw.text((400, 225), "A+3", fill=color_accent, anchor="mm")
+    elif "matrix" in n_lower or "matrix calculator" in n_lower:
+        # Matrix brackets and grid pattern
+        cx, cy = 400, 225
+        # Draw matrix brackets
+        v_draw.line([(200, 140), (200, 310)], fill=color_accent, width=5)
+        v_draw.line([(600, 140), (600, 310)], fill=color_accent, width=5)
+        # Draw matrix grid lines
+        for i in range(3):
+            y = 165 + i * 60
+            v_draw.line([(220, y), (580, y)], fill=color_accent_dim, width=2)
+        # Draw sample numbers
+        sample_nums = [["2", "1"], ["3", "4"]]
+        for i in range(2):
+            for j in range(2):
+                x = 290 + j * 100
+                y = 200 + i * 60
+                v_draw.text((x, y), sample_nums[i][j], fill=color_accent, anchor="mm", font=font_title)
+        # Draw operation symbol
+        v_draw.text((400, 280), "×", fill=color_accent, anchor="mm", font=font_title)
     elif "pet" in n_lower or "productivity" in n_lower:
         # Cute paw print
         cx, cy = 400, 225
@@ -472,6 +491,7 @@ projects = [
     ("Binary Search", "math", "binary-search.webp"),
     ("Bubble Sort", "math", "bubble-sort.webp"),
     ("Tower of Hanoi", "math", "tower-of-hanoi.webp"),
+    ("Matrix Calculator", "math", "matrix-calculator.webp"),
 
     # UTILITIES
     ("Morse Code", "utilities", "morse-code.webp"),
