@@ -1,4 +1,5 @@
-// Project HTML Templates and Logic
+﻿// Project Registry
+// Each project's HTML and logic lives in its own file under js/projects/
 
 function getProjectHTML(projectName) {
     const projects = {
@@ -1551,1648 +1552,368 @@ function getFlamesHTML() {
     `;
 }
 
-function initFlames() {
-    const name1Input = document.getElementById('name1');
-    const name2Input = document.getElementById('name2');
-    const calculateBtn = document.getElementById('calculateFlames');
-    const resultDiv = document.getElementById('flamesResult');
-    
-    const relationshipData = {
-        'F': { name: 'Friends', emoji: '👫', message: 'You two are best friends forever!' },
-        'L': { name: 'Love', emoji: '❤️', message: 'True love is in the air!' },
-        'A': { name: 'Affection', emoji: '🥰', message: 'Sweet affection between you!' },
-        'M': { name: 'Marriage', emoji: '💍', message: 'Wedding bells are ringing!' },
-        'E': { name: 'Enemies', emoji: '😠', message: 'Maybe not the best match...' },
-        'S': { name: 'Siblings', emoji: '👨‍👩‍👧', message: 'Like brother and sister!' }
-    };
-    
-    function calculateFlames() {
-        const name1 = name1Input.value.toLowerCase().replace(/\s/g, '');
-        const name2 = name2Input.value.toLowerCase().replace(/\s/g, '');
-        
-        if (!name1 || !name2) {
-            resultDiv.innerHTML = '<p style="color: var(--danger-color);">⚠️ Please enter both names!</p>';
-            return;
-        }
-        
-        const originalName1 = name1Input.value.trim();
-        const originalName2 = name2Input.value.trim();
-        
-        // Convert to arrays
-        let name1List = name1.split('');
-        let name2List = name2.split('');
-        
-        // Remove common characters
-        const name1Copy = [...name1List];
-        for (let char of name1Copy) {
-            const index2 = name2List.indexOf(char);
-            if (index2 !== -1) {
-                name1List.splice(name1List.indexOf(char), 1);
-                name2List.splice(index2, 1);
-            }
-        }
-        
-        const count = name1List.length + name2List.length;
-        
-        // Calculate FLAMES
-        const flames = ['F', 'L', 'A', 'M', 'E', 'S'];
-        let index = 0;
-        
-        while (flames.length > 1) {
-            index = (index + count - 1) % flames.length;
-            flames.splice(index, 1);
-            if (index === flames.length && flames.length > 0) {
-                index = 0;
-            }
-        }
-        
-        const result = flames[0];
-        const relationship = relationshipData[result];
-        
-        // Display result with animation
-        resultDiv.innerHTML = `
-            <div class="result-card">
-                <div class="result-emoji">${relationship.emoji}</div>
-                <div class="result-names">${originalName1} & ${originalName2}</div>
-                <div class="result-relationship">${relationship.name}</div>
-                <div class="result-details">
-                    <div>${relationship.message}</div>
-                    <div style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.9;">
-                        Remaining letters: ${count}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    calculateBtn.addEventListener('click', calculateFlames);
-    name1Input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') calculateFlames();
-    });
-    name2Input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') calculateFlames();
-    });
-}
+function getProjectHTML(projectName) {
+  const fnName = "get" + toPascalCase(projectName) + "HTML";
 
-// ============================================
-// COLLATZ CONJECTURE
-// ============================================
-function getCollatzHTML() {
+  try {
+    if (typeof window[fnName] === "function") {
+      return window[fnName]();
+    } else {
+      throw new Error(`Module ${fnName} is missing or failed to initialize.`);
+    }
+  } catch (error) {
+    console.warn(`[Project Loader] Failed to load ${projectName}:`, error);
     return `
-        <div class="project-content">
-            <h2>🔢 Collatz Conjecture</h2>
-            <p class="project-desc">The famous 3n+1 problem - Watch the sequence reach 1!</p>
-            <div class="collatz-container">
-                <div class="rules">
-                    <h3>Rules:</h3>
-                    <div class="rule-item">📉 If even: divide by 2</div>
-                    <div class="rule-item">📈 If odd: multiply by 3 and add 1</div>
-                    <div class="rule-item">🎯 Continue until reaching 1</div>
-                </div>
-                
-                <div class="input-section">
-                    <input type="number" id="collatzNumber" placeholder="Enter a positive integer" min="1" value="27">
-                    <button class="btn-generate" id="generateCollatz">🔢 Generate Sequence</button>
-                </div>
-                
-                <div class="collatz-stats" id="collatzStats"></div>
-                
-                <div class="sequence-display" id="sequenceDisplay"></div>
-                
-                <canvas id="collatzGraph" width="800" height="300"></canvas>
-            </div>
-        </div>
-        
-        <style>
-            .collatz-container {
-                padding: 2rem;
-                max-width: 900px;
-                margin: 0 auto;
-            }
-            
-            .rules {
-                background: var(--surface-color);
-                padding: 1.5rem;
-                border-radius: 15px;
-                margin-bottom: 2rem;
-                border: 2px solid var(--border-color);
-            }
-            
-            .rules h3 {
-                margin-bottom: 1rem;
-                color: var(--primary-color);
-            }
-            
-            .rule-item {
-                padding: 0.5rem;
-                margin: 0.5rem 0;
-                background: var(--bg-color);
-                border-radius: 8px;
-                font-size: 1.1rem;
-            }
-            
-            .input-section {
-                display: flex;
-                gap: 1rem;
-                justify-content: center;
-                margin-bottom: 2rem;
-                flex-wrap: wrap;
-            }
-            
-            .input-section input {
-                flex: 1;
-                max-width: 300px;
-                padding: 1rem;
-                font-size: 1.1rem;
-                border: 2px solid var(--border-color);
-                border-radius: 10px;
-                background: var(--bg-color);
-                color: var(--text-color);
-                text-align: center;
-            }
-            
-            .collatz-stats {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 1rem;
-                margin-bottom: 2rem;
-            }
-            
-            .stat-box {
-                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-                color: white;
-                padding: 1.5rem;
-                border-radius: 15px;
-                text-align: center;
-            }
-            
-            .stat-label {
-                font-size: 0.9rem;
-                opacity: 0.9;
-                margin-bottom: 0.5rem;
-            }
-            
-            .stat-value {
-                font-size: 2rem;
-                font-weight: bold;
-            }
-            
-            .sequence-display {
-                background: var(--surface-color);
-                border: 2px solid var(--border-color);
-                border-radius: 15px;
-                padding: 1.5rem;
-                margin-bottom: 2rem;
-                max-height: 300px;
-                overflow-y: auto;
-            }
-            
-            .sequence-number {
-                display: inline-block;
-                background: var(--primary-color);
-                color: white;
-                padding: 0.5rem 1rem;
-                margin: 0.25rem;
-                border-radius: 8px;
-                font-family: 'Courier New', monospace;
-                font-weight: bold;
-                animation: fadeIn 0.3s ease;
-            }
-            
-            .sequence-arrow {
-                display: inline-block;
-                color: var(--text-secondary);
-                margin: 0 0.25rem;
-            }
-            
-            #collatzGraph {
-                background: var(--surface-color);
-                border-radius: 15px;
-                box-shadow: var(--shadow);
-                max-width: 100%;
-                height: auto;
-                display: block;
-                margin: 0 auto;
-            }
-        </style>
+      <div class="project-content error-state" style="text-align: center; padding: 3rem 1rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+        <h3 style="color: var(--danger-color, #ff4444); margin-bottom: 0.5rem; font-family: monospace;">
+          SYSTEM ERROR: PROJECT OFFLINE
+        </h3>
+        <p style="color: var(--text-secondary, #a0aec0); margin-bottom: 1.5rem;">
+          We couldn't initialize the interactive environment for <strong>${projectName}</strong>.
+        </p>
+        <button onclick="window.location.reload()" 
+          style="background: var(--primary-color, #4CAF50); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer;">
+          >_ RETRY_CONNECTION
+        </button>
+      </div>
     `;
-}
-
-function initCollatz() {
-    const numberInput = document.getElementById('collatzNumber');
-    const generateBtn = document.getElementById('generateCollatz');
-    const statsDiv = document.getElementById('collatzStats');
-    const sequenceDiv = document.getElementById('sequenceDisplay');
-    const canvas = document.getElementById('collatzGraph');
-    const ctx = canvas.getContext('2d');
-    
-    function generateSequence() {
-        let number = parseInt(numberInput.value);
-        
-        if (!number || number < 1) {
-            sequenceDiv.innerHTML = '<p style="color: var(--danger-color);">⚠️ Please enter a positive integer!</p>';
-            statsDiv.innerHTML = '';
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            return;
-        }
-        
-        const originalNumber = number;
-        const sequence = [number];
-        const maxSteps = 20000;
-        let steps = 0;
-        
-        // Generate sequence with a safety limit
-        while (number !== 1 && steps < maxSteps) {
-            if (number % 2 === 0) {
-                number = number / 2;
-            } else {
-                number = 3 * number + 1;
-            }
-            sequence.push(number);
-            steps++;
-        }
-
-        const reachedOne = number === 1;
-        
-        // Display stats
-        const maxNum = Math.max(...sequence);
-        const statusText = reachedOne ? 'Reached 1 ✅' : `Not reached in ${maxSteps} steps ❌`;
-        
-        statsDiv.innerHTML = `
-            <div class="stat-box">
-                <div class="stat-label">Starting Number</div>
-                <div class="stat-value">${originalNumber}</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Status</div>
-                <div class="stat-value" style="font-size: 1rem; line-height: 1.3;">${statusText}</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Steps Taken</div>
-                <div class="stat-value">${steps}</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Highest Number</div>
-                <div class="stat-value">${maxNum}</div>
-            </div>
-        `;
-        
-        // Display sequence
-        sequenceDiv.innerHTML = reachedOne
-            ? '<p style="margin-bottom: 1rem; color: var(--success-color); font-weight: 600;">✅ This number reaches 1.</p>'
-            : `<p style="margin-bottom: 1rem; color: var(--warning-color); font-weight: 600;">⚠️ Could not confirm reach to 1 within ${maxSteps} steps.</p>`;
-        sequence.forEach((num, index) => {
-            const numEl = document.createElement('span');
-            numEl.className = 'sequence-number';
-            numEl.textContent = num;
-            numEl.style.animationDelay = `${index * 0.02}s`;
-            sequenceDiv.appendChild(numEl);
-            
-            if (index < sequence.length - 1) {
-                const arrow = document.createElement('span');
-                arrow.className = 'sequence-arrow';
-                arrow.textContent = '→';
-                sequenceDiv.appendChild(arrow);
-            }
-        });
-        
-        // Draw graph for the generated sequence
-        drawGraph(sequence);
-    }
-    
-    function drawGraph(sequence) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        if (sequence.length === 0) return;
-        
-        const padding = 40;
-        const graphWidth = canvas.width - 2 * padding;
-        const graphHeight = canvas.height - 2 * padding;
-        
-        const maxValue = Math.max(...sequence);
-        const xStep = graphWidth / (sequence.length - 1);
-        const yScale = graphHeight / maxValue;
-        
-        // Draw axes
-        ctx.strokeStyle = 'var(--text-secondary)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(padding, padding);
-        ctx.lineTo(padding, canvas.height - padding);
-        ctx.lineTo(canvas.width - padding, canvas.height - padding);
-        ctx.stroke();
-        
-        // Draw grid lines
-        ctx.strokeStyle = 'rgba(100, 116, 139, 0.2)';
-        ctx.lineWidth = 1;
-        for (let i = 0; i <= 5; i++) {
-            const y = padding + (graphHeight / 5) * i;
-            ctx.beginPath();
-            ctx.moveTo(padding, y);
-            ctx.lineTo(canvas.width - padding, y);
-            ctx.stroke();
-        }
-        
-        // Draw line
-        ctx.strokeStyle = '#6366f1';
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        
-        ctx.beginPath();
-        sequence.forEach((value, index) => {
-            const x = padding + index * xStep;
-            const y = canvas.height - padding - value * yScale;
-            
-            if (index === 0) {
-                ctx.moveTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
-        });
-        ctx.stroke();
-        
-        // Draw points
-        ctx.fillStyle = '#8b5cf6';
-        sequence.forEach((value, index) => {
-            const x = padding + index * xStep;
-            const y = canvas.height - padding - value * yScale;
-            
-            ctx.beginPath();
-            ctx.arc(x, y, 4, 0, Math.PI * 2);
-            ctx.fill();
-        });
-        
-        // Draw labels
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '12px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Steps →', canvas.width / 2, canvas.height - 10);
-        
-        ctx.save();
-        ctx.translate(15, canvas.height / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.fillText('Value', 0, 0);
-        ctx.restore();
-    }
-    
-    generateBtn.addEventListener('click', generateSequence);
-    numberInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') generateSequence();
-    });
-    
-    // Generate initial sequence
-    generateSequence();
-}
-
-function getArmstrongHTML() { 
-    return `
-        <div class="project-content">
-            <h2>💎 Armstrong Number Checker</h2>
-            <p class="project-desc">Check if a number equals the sum of its digits raised to the power of the number of digits</p>
-            <div class="armstrong-container">
-                <div class="input-section">
-                    <input type="number" id="armstrongNumber" placeholder="Enter a number" min="0">
-                    <button class="btn-check" id="checkArmstrong">💎 Check</button>
-                </div>
-                
-                <div class="result-display" id="armstrongResult"></div>
-                
-                <div class="examples">
-                    <h4>Examples of Armstrong Numbers:</h4>
-                    <div class="example-grid">
-                        <button class="example-btn" data-num="0">0</button>
-                        <button class="example-btn" data-num="1">1</button>
-                        <button class="example-btn" data-num="153">153</button>
-                        <button class="example-btn" data-num="370">370</button>
-                        <button class="example-btn" data-num="371">371</button>
-                        <button class="example-btn" data-num="407">407</button>
-                        <button class="example-btn" data-num="1634">1634</button>
-                        <button class="example-btn" data-num="9474">9474</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <style>
-            .armstrong-container {
-                padding: 2rem;
-                max-width: 700px;
-                margin: 0 auto;
-            }
-            
-            .result-display {
-                margin: 2rem 0;
-                min-height: 200px;
-            }
-            
-            .armstrong-result {
-                background: var(--surface-color);
-                border: 2px solid var(--border-color);
-                border-radius: 15px;
-                padding: 2rem;
-                animation: fadeIn 0.5s ease;
-            }
-            
-            .result-header {
-                font-size: 1.8rem;
-                font-weight: bold;
-                margin-bottom: 1.5rem;
-                padding-bottom: 1rem;
-                border-bottom: 2px solid var(--border-color);
-            }
-            
-            .result-header.is-armstrong {
-                color: var(--success-color);
-            }
-            
-            .result-header.not-armstrong {
-                color: var(--danger-color);
-            }
-            
-            .calculation-steps {
-                margin: 1.5rem 0;
-                padding: 1rem;
-                background: var(--bg-color);
-                border-radius: 10px;
-            }
-            
-            .step {
-                margin: 0.75rem 0;
-                font-size: 1.1rem;
-                font-family: 'Courier New', monospace;
-            }
-            
-            .digit-breakdown {
-                display: flex;
-                gap: 1rem;
-                justify-content: center;
-                flex-wrap: wrap;
-                margin: 1.5rem 0;
-            }
-            
-            .digit-card {
-                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-                color: white;
-                padding: 1rem;
-                border-radius: 10px;
-                min-width: 80px;
-                text-align: center;
-            }
-            
-            .digit-value {
-                font-size: 2rem;
-                font-weight: bold;
-            }
-            
-            .digit-power {
-                font-size: 0.9rem;
-                opacity: 0.9;
-                margin-top: 0.5rem;
-            }
-            
-            .examples {
-                margin-top: 3rem;
-                text-align: center;
-            }
-            
-            .examples h4 {
-                margin-bottom: 1rem;
-                color: var(--text-secondary);
-            }
-            
-            .example-grid {
-                display: flex;
-                gap: 0.5rem;
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-            
-            .example-btn {
-                background: var(--surface-color);
-                border: 2px solid var(--border-color);
-                color: var(--text-color);
-                padding: 0.75rem 1.5rem;
-                border-radius: 10px;
-                cursor: pointer;
-                font-size: 1.1rem;
-                transition: var(--transition);
-            }
-            
-            .example-btn:hover {
-                border-color: var(--primary-color);
-                transform: translateY(-2px);
-            }
-        </style>
-    `;
-}
-
-function initArmstrong() {
-    const numberInput = document.getElementById('armstrongNumber');
-    const checkBtn = document.getElementById('checkArmstrong');
-    const resultDiv = document.getElementById('armstrongResult');
-    const exampleBtns = document.querySelectorAll('.example-btn');
-    
-    function checkArmstrong(num) {
-        if (num === null || num === undefined || num < 0) {
-            resultDiv.innerHTML = '<p style="color: var(--danger-color);">⚠️ Please enter a valid positive number!</p>';
-            return;
-        }
-        
-        const numStr = num.toString();
-        const numDigits = numStr.length;
-        const digits = numStr.split('').map(Number);
-        
-        // Calculate sum
-        let sum = 0;
-        const calculations = [];
-        
-        digits.forEach(digit => {
-            const power = Math.pow(digit, numDigits);
-            sum += power;
-            calculations.push({ digit, power });
-        });
-        
-        const isArmstrong = sum === num;
-        
-        // Display result
-        let html = `
-            <div class="armstrong-result">
-                <div class="result-header ${isArmstrong ? 'is-armstrong' : 'not-armstrong'}">
-                    ${isArmstrong ? '✅ Armstrong Number!' : '❌ Not an Armstrong Number'}
-                </div>
-                
-                <div class="calculation-steps">
-                    <div class="step"><strong>Number:</strong> ${num}</div>
-                    <div class="step"><strong>Number of digits:</strong> ${numDigits}</div>
-                    <div class="step"><strong>Calculation:</strong> Each digit raised to power ${numDigits}</div>
-                </div>
-                
-                <div class="digit-breakdown">
-        `;
-        
-        calculations.forEach(calc => {
-            html += `
-                <div class="digit-card">
-                    <div class="digit-value">${calc.digit}</div>
-                    <div class="digit-power">${calc.digit}^${numDigits} = ${calc.power}</div>
-                </div>
-            `;
-        });
-        
-        html += `
-                </div>
-                
-                <div class="calculation-steps">
-                    <div class="step">
-                        <strong>Sum:</strong> ${calculations.map(c => c.power).join(' + ')} = ${sum}
-                    </div>
-                    <div class="step">
-                        ${isArmstrong 
-                            ? `<span style="color: var(--success-color);">✓ ${sum} = ${num} (Armstrong Number!)</span>`
-                            : `<span style="color: var(--danger-color);">✗ ${sum} ≠ ${num} (Not Armstrong)</span>`
-                        }
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        resultDiv.innerHTML = html;
-    }
-    
-    checkBtn.addEventListener('click', () => {
-        const num = parseInt(numberInput.value);
-        checkArmstrong(num);
-    });
-    
-    numberInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const num = parseInt(numberInput.value);
-            checkArmstrong(num);
-        }
-    });
-    
-    exampleBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const num = parseInt(btn.getAttribute('data-num'));
-            numberInput.value = num;
-            checkArmstrong(num);
-        });
-    });
+  }
 }
 
 // ============================================
-// HANGMAN GAME
+// PROJECT INSTRUCTIONS FOR INFO TOOLTIPS
 // ============================================
-function getHangmanHTML() {
-    return `
-        <div class="project-content">
-            <h2>🎮 Hangman Game</h2>
-            <div class="hangman-container">
-                <div class="game-stats">
-                    <div class="stat">
-                        <span class="stat-label">Attempts Left:</span>
-                        <span class="stat-value" id="attemptsLeft">6</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Word Length:</span>
-                        <span class="stat-value" id="wordLength">0</span>
-                    </div>
-                </div>
-                
-                <canvas id="hangmanCanvas" width="300" height="350"></canvas>
-                
-                <div class="word-display" id="wordDisplay"></div>
-                
-                <div class="guessed-letters">
-                    <h4>Guessed Letters:</h4>
-                    <div id="guessedList">None</div>
-                </div>
-                
-                <div class="keyboard" id="keyboard"></div>
-                
-                <div class="game-message" id="gameMessage"></div>
-                
-                <button class="btn-new-game" id="newGameBtn">🎮 New Game</button>
-            </div>
-        </div>
-        
-        <style>
-            .hangman-container {
-                padding: 2rem;
-                max-width: 800px;
-                margin: 0 auto;
-                text-align: center;
-            }
-            
-            .game-stats {
-                display: flex;
-                gap: 2rem;
-                justify-content: center;
-                margin-bottom: 2rem;
-            }
-            
-            .stat {
-                background: var(--surface-color);
-                padding: 1rem 2rem;
-                border-radius: 10px;
-                border: 2px solid var(--border-color);
-            }
-            
-            .stat-label {
-                display: block;
-                font-size: 0.9rem;
-                color: var(--text-secondary);
-                margin-bottom: 0.5rem;
-            }
-            
-            .stat-value {
-                display: block;
-                font-size: 2rem;
-                font-weight: bold;
-                color: var(--primary-color);
-            }
-            
-            #hangmanCanvas {
-                background: var(--surface-color);
-                border: 2px solid var(--border-color);
-                border-radius: 15px;
-                margin: 2rem auto;
-                display: block;
-                box-shadow: var(--shadow);
-            }
-            
-            .word-display {
-                font-size: 3rem;
-                letter-spacing: 1rem;
-                margin: 2rem 0;
-                font-family: 'Courier New', monospace;
-                font-weight: bold;
-                min-height: 4rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-            
-            .letter-box {
-                display: inline-block;
-                width: 50px;
-                height: 60px;
-                line-height: 60px;
-                margin: 0.25rem;
-                border-bottom: 3px solid var(--primary-color);
-                color: var(--text-color);
-            }
-            
-            .guessed-letters {
-                margin: 2rem 0;
-            }
-            
-            .guessed-letters h4 {
-                color: var(--text-secondary);
-                margin-bottom: 1rem;
-            }
-            
-            #guessedList {
-                font-size: 1.2rem;
-                color: var(--text-color);
-                min-height: 2rem;
-            }
-            
-            .keyboard {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.5rem;
-                justify-content: center;
-                margin: 2rem 0;
-                max-width: 600px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-            
-            .key-btn {
-                width: 45px;
-                height: 45px;
-                background: var(--primary-color);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-size: 1.2rem;
-                font-weight: bold;
-                cursor: pointer;
-                transition: var(--transition);
-            }
-            
-            .key-btn:hover:not(:disabled) {
-                transform: scale(1.1);
-                box-shadow: 0 3px 10px rgba(99, 102, 241, 0.4);
-            }
-            
-            .key-btn:disabled {
-                background: var(--border-color);
-                cursor: not-allowed;
-                opacity: 0.5;
-            }
-            
-            .key-btn.correct {
-                background: var(--success-color);
-            }
-            
-            .key-btn.wrong {
-                background: var(--danger-color);
-            }
-            
-            .game-message {
-                font-size: 1.5rem;
-                font-weight: bold;
-                min-height: 3rem;
-                margin: 2rem 0;
-            }
-            
-            .game-message.win {
-                color: var(--success-color);
-            }
-            
-            .game-message.lose {
-                color: var(--danger-color);
-            }
-            
-            .btn-new-game {
-                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-                color: white;
-                border: none;
-                padding: 1rem 3rem;
-                border-radius: 50px;
-                font-size: 1.2rem;
-                cursor: pointer;
-                transition: var(--transition);
-            }
-            
-            .btn-new-game:hover {
-                transform: scale(1.05);
-                box-shadow: 0 5px 20px rgba(99, 102, 241, 0.4);
-            }
-        </style>
-    `;
-}
 
-function initHangman() {
-    const canvas = document.getElementById('hangmanCanvas');
-    const ctx = canvas.getContext('2d');
-    const wordDisplay = document.getElementById('wordDisplay');
-    const guessedList = document.getElementById('guessedList');
-    const attemptsLeftEl = document.getElementById('attemptsLeft');
-    const wordLengthEl = document.getElementById('wordLength');
-    const keyboard = document.getElementById('keyboard');
-    const gameMessage = document.getElementById('gameMessage');
-    const newGameBtn = document.getElementById('newGameBtn');
-    
-    const words = ['python', 'programming', 'computer', 'algorithm', 'keyboard', 
-                   'monitor', 'software', 'hardware', 'database', 'network',
-                   'internet', 'developer', 'variable', 'function', 'application'];
-    
-    let currentWord = '';
-    let guessedLetters = [];
-    let correctLetters = [];
-    let wrongAttempts = 0;
-    const maxAttempts = 6;
-    let gameOver = false;
-    
-    // Create keyboard
-    function createKeyboard() {
-        keyboard.innerHTML = '';
-        const letters = 'abcdefghijklmnopqrstuvwxyz'.split('');
-        
-        letters.forEach(letter => {
-            const btn = document.createElement('button');
-            btn.className = 'key-btn';
-            btn.textContent = letter.toUpperCase();
-            btn.dataset.letter = letter;
-            btn.addEventListener('click', () => guessLetter(letter));
-            keyboard.appendChild(btn);
-        });
-    }
-    
-    // Draw hangman parts
-    function drawHangman(stage) {
-        ctx.strokeStyle = '#64748b';
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        
-        switch(stage) {
-            case 1: // Base
-                ctx.beginPath();
-                ctx.moveTo(50, 320);
-                ctx.lineTo(200, 320);
-                ctx.stroke();
-                break;
-            case 2: // Pole
-                ctx.beginPath();
-                ctx.moveTo(100, 320);
-                ctx.lineTo(100, 50);
-                ctx.stroke();
-                break;
-            case 3: // Top beam
-                ctx.beginPath();
-                ctx.moveTo(100, 50);
-                ctx.lineTo(200, 50);
-                ctx.stroke();
-                break;
-            case 4: // Rope
-                ctx.beginPath();
-                ctx.moveTo(200, 50);
-                ctx.lineTo(200, 80);
-                ctx.stroke();
-                break;
-            case 5: // Head
-                ctx.beginPath();
-                ctx.arc(200, 100, 20, 0, Math.PI * 2);
-                ctx.stroke();
-                // Eyes
-                ctx.fillStyle = '#64748b';
-                ctx.beginPath();
-                ctx.arc(195, 95, 2, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(205, 95, 2, 0, Math.PI * 2);
-                ctx.fill();
-                // Sad mouth
-                ctx.beginPath();
-                ctx.arc(200, 105, 8, 0, Math.PI, false);
-                ctx.stroke();
-                break;
-            case 6: // Body
-                ctx.beginPath();
-                ctx.moveTo(200, 120);
-                ctx.lineTo(200, 200);
-                ctx.stroke();
-                break;
-            case 7: // Left arm
-                ctx.beginPath();
-                ctx.moveTo(200, 140);
-                ctx.lineTo(170, 170);
-                ctx.stroke();
-                break;
-            case 8: // Right arm
-                ctx.beginPath();
-                ctx.moveTo(200, 140);
-                ctx.lineTo(230, 170);
-                ctx.stroke();
-                break;
-            case 9: // Left leg
-                ctx.beginPath();
-                ctx.moveTo(200, 200);
-                ctx.lineTo(180, 250);
-                ctx.stroke();
-                break;
-            case 10: // Right leg (game over)
-                ctx.beginPath();
-                ctx.moveTo(200, 200);
-                ctx.lineTo(220, 250);
-                ctx.stroke();
-                break;
-        }
-    }
-    
-    // Initialize game
-    function initGame() {
-        currentWord = words[Math.floor(Math.random() * words.length)];
-        guessedLetters = [];
-        correctLetters = [];
-        wrongAttempts = 0;
-        gameOver = false;
-        
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Update UI
-        wordLengthEl.textContent = currentWord.length;
-        attemptsLeftEl.textContent = maxAttempts;
-        guessedList.textContent = 'None';
-        gameMessage.textContent = '';
-        gameMessage.className = 'game-message';
-        
-        createKeyboard();
-        updateWordDisplay();
-    }
-    
-    // Update word display
-    function updateWordDisplay() {
-        wordDisplay.innerHTML = '';
-        for (let letter of currentWord) {
-            const letterBox = document.createElement('div');
-            letterBox.className = 'letter-box';
-            letterBox.textContent = correctLetters.includes(letter) ? letter.toUpperCase() : '';
-            wordDisplay.appendChild(letterBox);
-        }
-    }
-    
-    // Guess letter
-    function guessLetter(letter) {
-        if (gameOver || guessedLetters.includes(letter)) return;
-        
-        guessedLetters.push(letter);
-        
-        // Update button
-        const btn = keyboard.querySelector(`[data-letter="${letter}"]`);
-        btn.disabled = true;
-        
-        if (currentWord.includes(letter)) {
-            // Correct guess
-            correctLetters.push(letter);
-            btn.classList.add('correct');
-            
-            updateWordDisplay();
-            
-            // Check win
-            if (currentWord.split('').every(l => correctLetters.includes(l))) {
-                gameOver = true;
-                gameMessage.textContent = '🎉 Congratulations! You won!';
-                gameMessage.className = 'game-message win';
-                disableAllKeys();
-            }
-        } else {
-            // Wrong guess
-            wrongAttempts++;
-            btn.classList.add('wrong');
-            
-            // Draw hangman part (stages 1-4 are gallows, 5-10 are body parts)
-            const drawStage = wrongAttempts + 4;
-            drawHangman(drawStage);
-            
-            attemptsLeftEl.textContent = maxAttempts - wrongAttempts;
-            
-            // Check lose
-            if (wrongAttempts >= maxAttempts) {
-                gameOver = true;
-                gameMessage.innerHTML = `😔 Game Over! The word was: <strong>${currentWord.toUpperCase()}</strong>`;
-                gameMessage.className = 'game-message lose';
-                disableAllKeys();
-                updateWordDisplay();
-                // Show complete word
-                wordDisplay.innerHTML = '';
-                for (let letter of currentWord) {
-                    const letterBox = document.createElement('div');
-                    letterBox.className = 'letter-box';
-                    letterBox.textContent = letter.toUpperCase();
-                    letterBox.style.color = 'var(--danger-color)';
-                    wordDisplay.appendChild(letterBox);
-                }
-            }
-        }
-        
-        // Update guessed letters list
-        guessedList.textContent = guessedLetters.join(', ').toUpperCase();
-    }
-    
-    function disableAllKeys() {
-        keyboard.querySelectorAll('.key-btn').forEach(btn => {
-            btn.disabled = true;
-        });
-    }
-    
-    // Draw initial gallows
-    function drawGallows() {
-        drawHangman(1); // Base
-        drawHangman(2); // Pole
-        drawHangman(3); // Top beam
-        drawHangman(4); // Rope
-    }
-    
-    newGameBtn.addEventListener('click', () => {
-        initGame();
-        drawGallows();
-    });
-    
-    // Keyboard support
-    document.addEventListener('keypress', (e) => {
-        if (gameOver) return;
-        const letter = e.key.toLowerCase();
-        if (/^[a-z]$/.test(letter) && !guessedLetters.includes(letter)) {
-            guessLetter(letter);
-        }
-    });
-    
-    // Initialize
-    initGame();
-    drawGallows();
-}
+const projectInstructions = {
+  // GAMES
+  "2048-game": {
+    title: "🎮 How to Play 2048",
+    steps: [
+      "Use arrow keys (← ↑ → ↓) or on-screen buttons to move tiles",
+      "Same numbers merge into one (2+2=4, 4+4=8)",
+      "Keep merging to reach 2048!",
+      "Game ends when no moves are possible"
+    ]
+  },
+  "snake-game": {
+    title: "🐍 How to Play Snake",
+    steps: [
+      "Use arrow keys to control the snake",
+      "Eat the red food to grow longer",
+      "Don't hit the walls or yourself"
+    ]
+  },
+  "rock-paper-scissor": {
+    title: "✊ How to Play Rock Paper Scissors",
+    steps: [
+      "Choose Rock, Paper, or Scissors",
+      "Rock beats Scissors, Scissors beats Paper, Paper beats Rock",
+      "Play against the computer"
+    ]
+  },
+  "simon-says": {
+    title: "🎮 How to Play Simon Says",
+    steps: [
+      "Watch the sequence of colors/emojis",
+      "Repeat the sequence in the same order",
+      "Each round adds one more step",
+      "One wrong click ends the game"
+    ]
+  },
+  "flames": {
+    title: "💖 How to Use FLAMES",
+    steps: [
+      "Enter two names",
+      "Click Calculate",
+      "See your relationship status",
+      "Based on letter cancellation method"
+    ]
+  },
+  "tic-tac-toe": {
+    title: "❌⭕ How to Play Tic Tac Toe",
+    steps: [
+      "Two players take turns (X and O)",
+      "Get 3 in a row to win",
+      "Game ends when someone wins or board is full"
+    ]
+  },
+  "hangman": {
+    title: "🎮 How to Play Hangman",
+    steps: [
+      "Guess letters to complete the hidden word",
+      "6 wrong guesses and you lose",
+      "Use the keyboard or on-screen buttons"
+    ]
+  },
+  "flappy-game": {
+    title: "🐦 How to Play Flappy Game",
+    steps: [
+      "Click or press spacebar to make the bird fly",
+      "Avoid hitting the pipes",
+      "Try to get the highest score"
+    ]
+  },
+  "dice-rolling": {
+    title: "🎲 How to Use Dice Roller",
+    steps: [
+      "Choose the number of dice",
+      "Click 'Roll Dice' to roll",
+      "Each die shows a random number (1-6)"
+    ]
+  },
+  "coin-flip": {
+    title: "🪙 How to Play Coin Flip",
+    steps: [
+      "Bet on Heads or Tails",
+      "Click 'Flip Coin' to toss",
+      "Win if your prediction is correct"
+    ]
+  },
+  "number-guessing": {
+    title: "🎯 How to Play Number Guessing",
+    steps: [
+      "Guess a number between 1 and 100",
+      "Get hints if too high or too low",
+      "Try to guess in as few attempts as possible"
+    ]
+  },
+  "word-scramble": {
+    title: "📝 How to Play Word Scramble",
+    steps: [
+      "Unscramble the jumbled word",
+      "You have 30 seconds to guess",
+      "Use shuffle button to rearrange letters"
+    ]
+  },
+  "emoji-memory": {
+    title: "😀 How to Play Emoji Memory",
+    steps: [
+      "Click Start to begin",
+      "Watch the sequence of emojis",
+      "Retrace the sequence by clicking emoji buttons",
+      "Each level adds one more emoji"
+    ]
+  },
+  "dots-boxes": {
+    title: "🔲 How to Play Dots and Boxes",
+    steps: [
+      "Choose grid size",
+      "Select 2 Players or AI",
+      "Connect dots to form boxes",
+      "Player with most boxes wins"
+    ]
+  },
+  "whack-a-mole": {
+    title: "🔨 How to Play Whack-a-Mole",
+    steps: [
+      "Click on moles as they appear",
+      "Each mole gives points",
+      "Beat the clock for high score"
+    ]
+  },
+  "blackjack-21": {
+    title: "🃏 How to Play Blackjack",
+    steps: [
+      "Get as close to 21 without going over",
+      "Click 'Hit' for another card",
+      "Click 'Stand' to keep your hand",
+      "Beat the dealer to win"
+    ]
+  },
 
-// Collatz implementation is defined above.
+  // MATH
+  "calculator": {
+    title: "🧮 How to Use Calculator",
+    steps: [
+      "Click number buttons to enter values",
+      "Use operators (+, -, ×, ÷)",
+      "Press = to see result",
+      "Use C to clear, ⌫ to delete"
+    ]
+  },
+  "collatz": {
+    title: "🔢 How Collatz Conjecture Works",
+    steps: [
+      "Enter any positive integer",
+      "If even: divide by 2",
+      "If odd: multiply by 3 and add 1",
+      "The sequence always reaches 1!"
+    ]
+  },
+  "fibonacci": {
+    title: "📈 How Fibonacci Works",
+    steps: [
+      "Enter number of terms",
+      "Each number is sum of previous two",
+      "Sequence starts with 0, 1"
+    ]
+  },
+  "pascal-triangle": {
+    title: "🔺 How Pascal's Triangle Works",
+    steps: [
+      "Each number is sum of two above",
+      "Enter number of rows to generate"
+    ]
+  },
+  "armstrong": {
+    title: "💎 How Armstrong Numbers Work",
+    steps: [
+      "Enter a number to check",
+      "Sum of digits raised to power of digit count",
+      "If sum equals original number → Armstrong number"
+    ]
+  },
+  "prime-analyzer": {
+    title: "🔢 How Prime Analyzer Works",
+    steps: [
+      "Check if a number is prime",
+      "Generate primes up to a limit",
+      "Find primes in a range"
+    ]
+  },
+  "projectile-motion": {
+    title: "⚾ How Projectile Motion Works",
+    steps: [
+      "Enter initial velocity and angle",
+      "Calculate time of flight, max height, range"
+    ]
+  },
+  "binary-search": {
+    title: "🔍 How Binary Search Works",
+    steps: [
+      "Enter a sorted array",
+      "Enter target value to search",
+      "Cuts search space in half each step"
+    ]
+  },
+  "bubble-sort": {
+    title: "🔄 How Bubble Sort Works",
+    steps: [
+      "Enter an array of numbers",
+      "Watch the sorting visualization"
+    ]
+  },
+  "tower-of-hanoi": {
+    title: "🗼 How to Solve Tower of Hanoi",
+    steps: [
+      "Enter the number of disks",
+      "Click Solve to watch the animation",
+      "No larger disk on top of smaller disk"
+    ]
+  },
+  "coordinate-polar-transform": {
+    title: "📐 How Coordinate to Polar Transform Works",
+    steps: [
+      "Enter X and Y coordinates",
+      "Click Convert to get polar transformation"
+    ]
+  },
+  "derivative-calculator": {
+    title: "📈 How Derivative Calculator Works",
+    steps: [
+      "Enter derivative order (n)",
+      "Enter coefficients",
+      "Enter x value to evaluate"
+    ]
+  },
+  "progression-recognizer": {
+    title: "📊 How AP/GP/AGP/HP Recognizer Works",
+    steps: [
+      "Enter a sequence of numbers",
+      "Click Recognize to identify the sequence type"
+    ]
+  },
 
-function getPrimeAnalyzerHTML() { return '<h2>🔱 Prime Analyzer - Coming Soon!</h2>'; }
-function initPrimeAnalyzer() {}
+  // UTILITIES
+  "color-palette": {
+    title: "🎨 How to Use Color Palette",
+    steps: [
+      "Select a website type",
+      "Choose a mood",
+      "Click 'Generate Palette'",
+      "Click any color to copy its hex code"
+    ]
+  },
+  "morse-code": {
+    title: "📻 How to Use Morse Code",
+    steps: [
+      "Type text in the input box",
+      "Click Translate to convert to Morse code"
+    ]
+  },
+  "caesar-cipher": {
+    title: "🔐 How to Use Caesar Cipher",
+    steps: [
+      "Enter your message",
+      "Choose shift number (1-25)",
+      "Click Encrypt or Decrypt",
+      "Copy the result"
+    ]
+  },
+  "number-converter": {
+    title: "🔄 How to Use Number Converter",
+    steps: [
+      "Enter a number",
+      "Choose base to convert from and to",
+      "Result appears instantly"
+    ]
+  },
+  "password-forge": {
+    title: "🔑 How to Use Password Forge",
+    steps: [
+      "Choose password length",
+      "Select character types",
+      "Click Generate",
+      "Copy the secure password"
+    ]
+  },
+  "resume-analyzer": {
+    title: "📄 How to Use AI Resume Analyzer",
+    steps: [
+      "Upload your resume (PDF, DOC, or TXT)",
+      "Click 'Analyze Resume'",
+      "View your ATS score and keyword matches",
+      "Check suggestions to improve your resume"
+    ]
+  },
+  "typing-speed-tester": {
+    title: "⌨️ How to Use Typing Speed Tester",
+    steps: [
+      "Click Start to begin",
+      "Type the displayed text",
+      "Time starts when you begin typing",
+      "See your WPM score"
+    ]
+  },
+  "productive-pet": {
+    title: "🐱 How to Use Productive Pet",
+    steps: [
+      "Add tasks to complete",
+      "Pet grows as you complete tasks",
+      "Stay productive to keep your pet happy"
+    ]
+  },
+  "progress-tracker": {
+    title: "📊 How to Use Progress Tracker",
+    steps: [
+      "Track your completed mini projects",
+      "Mark projects as complete",
+      "See your progress over time"
+    ]
+  }
+};
 
-// ============================================
-// MORSE CODE TRANSLATOR
-// ============================================
-function getMorseCodeHTML() {
-    return `
-        <div class="project-content">
-            <h2>📻 Morse Code Translator</h2>
-            <div class="morse-container">
-                <div class="input-section">
-                    <label for="textInput">Enter Text:</label>
-                    <textarea id="textInput" rows="4" placeholder="Type your message here..."></textarea>
-                    <button class="btn-translate" id="translateBtn">📻 Translate to Morse</button>
-                </div>
-                
-                <div class="output-section">
-                    <h3>Morse Code Output:</h3>
-                    <div class="morse-output" id="morseOutput">
-                        <p class="placeholder">Your morse code will appear here...</p>
-                    </div>
-                </div>
-                
-                <div class="morse-chart">
-                    <h4>📊 Morse Code Reference Chart</h4>
-                    <div class="chart-grid" id="morseChart"></div>
-                </div>
-            </div>
-        </div>
-        
-        <style>
-            .morse-container {
-                padding: 2rem;
-                max-width: 800px;
-                margin: 0 auto;
-            }
-            
-            .input-section {
-                margin-bottom: 2rem;
-            }
-            
-            .input-section label {
-                display: block;
-                margin-bottom: 0.5rem;
-                font-size: 1.1rem;
-                font-weight: 600;
-            }
-            
-            .input-section textarea {
-                width: 100%;
-                padding: 1rem;
-                font-size: 1.1rem;
-                border: 2px solid var(--border-color);
-                border-radius: 10px;
-                background: var(--bg-color);
-                color: var(--text-color);
-                resize: vertical;
-                font-family: inherit;
-            }
-            
-            .btn-translate {
-                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-                color: white;
-                border: none;
-                padding: 1rem 2rem;
-                border-radius: 50px;
-                font-size: 1.1rem;
-                cursor: pointer;
-                margin-top: 1rem;
-                transition: var(--transition);
-            }
-            
-            .btn-translate:hover {
-                transform: scale(1.05);
-                box-shadow: 0 5px 20px rgba(99, 102, 241, 0.4);
-            }
-            
-            .output-section h3 {
-                margin-bottom: 1rem;
-            }
-            
-            .morse-output {
-                background: var(--surface-color);
-                border: 2px solid var(--border-color);
-                border-radius: 10px;
-                padding: 1.5rem;
-                min-height: 100px;
-                margin-bottom: 2rem;
-            }
-            
-            .morse-word {
-                display: inline-block;
-                margin: 0.5rem;
-                padding: 0.75rem 1rem;
-                background: var(--bg-color);
-                border-radius: 8px;
-                font-family: 'Courier New', monospace;
-                font-size: 1.2rem;
-                font-weight: bold;
-                color: var(--primary-color);
-                animation: fadeIn 0.3s ease;
-            }
-            
-            .placeholder {
-                color: var(--text-secondary);
-                text-align: center;
-                font-style: italic;
-            }
-            
-            .morse-chart {
-                margin-top: 3rem;
-            }
-            
-            .morse-chart h4 {
-                margin-bottom: 1rem;
-                text-align: center;
-            }
-            
-            .chart-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-                gap: 0.5rem;
-            }
-            
-            .chart-item {
-                background: var(--surface-color);
-                border: 1px solid var(--border-color);
-                border-radius: 8px;
-                padding: 0.5rem;
-                text-align: center;
-                font-size: 0.9rem;
-            }
-            
-            .chart-char {
-                font-weight: bold;
-                font-size: 1.1rem;
-                color: var(--primary-color);
-            }
-            
-            .chart-morse {
-                font-family: 'Courier New', monospace;
-                color: var(--text-secondary);
-                margin-top: 0.25rem;
-            }
-        </style>
-    `;
-}
-
-function initMorseCode() {
-    const morseCode = {
-        'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
-        'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
-        'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.',
-        'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
-        'Y': '-.--', 'Z': '--..', '0': '-----', '1': '.----', '2': '..---',
-        '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...',
-        '8': '---..', '9': '----.', ' ': '/'
-    };
-    
-    const textInput = document.getElementById('textInput');
-    const translateBtn = document.getElementById('translateBtn');
-    const morseOutput = document.getElementById('morseOutput');
-    const morseChart = document.getElementById('morseChart');
-    
-    // Populate morse chart
-    Object.keys(morseCode).forEach(char => {
-        if (char !== ' ') {
-            const item = document.createElement('div');
-            item.className = 'chart-item';
-            item.innerHTML = `
-                <div class="chart-char">${char}</div>
-                <div class="chart-morse">${morseCode[char]}</div>
-            `;
-            morseChart.appendChild(item);
-        }
-    });
-    
-    // Translate function
-    function translate() {
-        const text = textInput.value.toUpperCase();
-        if (!text.trim()) {
-            morseOutput.innerHTML = '<p class="placeholder">Please enter some text to translate!</p>';
-            return;
-        }
-        
-        morseOutput.innerHTML = '';
-        const words = text.split(' ');
-        
-        words.forEach((word, wordIndex) => {
-            let morseWord = '';
-            for (let char of word) {
-                if (morseCode[char]) {
-                    morseWord += morseCode[char] + ' ';
-                }
-            }
-            
-            if (morseWord.trim()) {
-                const wordEl = document.createElement('div');
-                wordEl.className = 'morse-word';
-                wordEl.textContent = morseWord.trim();
-                wordEl.style.animationDelay = `${wordIndex * 0.1}s`;
-                morseOutput.appendChild(wordEl);
-            }
-        });
-    }
-    
-    translateBtn.addEventListener('click', translate);
-    textInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && e.ctrlKey) {
-            translate();
-        }
-    });
-}
-
-// ============================================
-// PRIME ANALYZER
-// ============================================
-function getPrimeAnalyzerHTML() {
-    return `
-        <div class="project-content">
-            <h2>🔱 Prime Number Analyzer</h2>
-            <div class="prime-container">
-                <div class="prime-checker">
-                    <h3>Check if Number is Prime</h3>
-                    <div class="input-group">
-                        <input type="number" id="primeInput" placeholder="Enter a number">
-                        <button class="btn-check" id="checkPrimeBtn">Check</button>
-                    </div>
-                    <div class="result-display" id="primeResult"></div>
-                </div>
-                
-                <div class="prime-generator">
-                    <h3>Generate Prime Numbers</h3>
-                    <div class="input-group">
-                        <label>Up to: </label>
-                        <input type="number" id="generateLimit" placeholder="100" value="100">
-                        <button class="btn-check" id="generatePrimesBtn">Generate</button>
-                    </div>
-                    <div class="primes-display" id="primesDisplay"></div>
-                </div>
-                
-                <div class="prime-range">
-                    <h3>Primes in Range</h3>
-                    <div class="range-inputs">
-                        <input type="number" id="rangeStart" placeholder="Start" value="1">
-                        <span>to</span>
-                        <input type="number" id="rangeEnd" placeholder="End" value="50">
-                        <button class="btn-check" id="rangeBtn">Find</button>
-                    </div>
-                    <div class="primes-display" id="rangeDisplay"></div>
-                </div>
-            </div>
-        </div>
-        
-        <style>
-            .prime-container {
-                padding: 2rem;
-                max-width: 900px;
-                margin: 0 auto;
-            }
-            
-            .prime-checker, .prime-generator, .prime-range {
-                background: var(--surface-color);
-                padding: 1.5rem;
-                border-radius: 15px;
-                margin-bottom: 2rem;
-                border: 2px solid var(--border-color);
-            }
-            
-            .prime-checker h3, .prime-generator h3, .prime-range h3 {
-                margin-bottom: 1rem;
-                color: var(--primary-color);
-            }
-            
-            .input-group {
-                display: flex;
-                gap: 1rem;
-                align-items: center;
-                flex-wrap: wrap;
-                margin-bottom: 1rem;
-            }
-            
-            .input-group input {
-                flex: 1;
-                min-width: 150px;
-                padding: 0.75rem;
-                font-size: 1.1rem;
-                border: 2px solid var(--border-color);
-                border-radius: 10px;
-                background: var(--bg-color);
-                color: var(--text-color);
-            }
-            
-            .btn-check {
-                background: var(--primary-color);
-                color: white;
-                border: none;
-                padding: 0.75rem 2rem;
-                border-radius: 10px;
-                cursor: pointer;
-                font-size: 1rem;
-                transition: var(--transition);
-            }
-            
-            .btn-check:hover {
-                transform: scale(1.05);
-            }
-            
-            .result-display {
-                font-size: 1.3rem;
-                font-weight: bold;
-                padding: 1rem;
-                border-radius: 10px;
-                min-height: 3rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .result-display.prime {
-                background: var(--success-color);
-                color: white;
-            }
-            
-            .result-display.not-prime {
-                background: var(--danger-color);
-                color: white;
-            }
-            
-            .primes-display {
-                display: flex;
-                gap: 0.5rem;
-                flex-wrap: wrap;
-                margin-top: 1rem;
-                min-height: 50px;
-            }
-            
-            .prime-number {
-                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-                color: white;
-                padding: 0.5rem 1rem;
-                border-radius: 10px;
-                font-weight: bold;
-                animation: fadeIn 0.3s ease;
-            }
-            
-            .range-inputs {
-                display: flex;
-                gap: 1rem;
-                align-items: center;
-                flex-wrap: wrap;
-            }
-            
-            .range-inputs input {
-                width: 120px;
-                padding: 0.75rem;
-                font-size: 1.1rem;
-                border: 2px solid var(--border-color);
-                border-radius: 10px;
-                background: var(--bg-color);
-                color: var(--text-color);
-            }
-        </style>
-    `;
-}
-
-function initPrimeAnalyzer() {
-    const primeInput = document.getElementById('primeInput');
-    const checkPrimeBtn = document.getElementById('checkPrimeBtn');
-    const primeResult = document.getElementById('primeResult');
-    const generateLimit = document.getElementById('generateLimit');
-    const generatePrimesBtn = document.getElementById('generatePrimesBtn');
-    const primesDisplay = document.getElementById('primesDisplay');
-    const rangeStart = document.getElementById('rangeStart');
-    const rangeEnd = document.getElementById('rangeEnd');
-    const rangeBtn = document.getElementById('rangeBtn');
-    const rangeDisplay = document.getElementById('rangeDisplay');
-    
-    // Check if number is prime
-    function isPrime(num) {
-        if (num < 2) return false;
-        if (num === 2) return true;
-        if (num % 2 === 0) return false;
-        
-        for (let i = 3; i <= Math.sqrt(num); i += 2) {
-            if (num % i === 0) return false;
-        }
-        return true;
-    }
-    
-    // Check prime
-    function checkPrime() {
-        const num = parseInt(primeInput.value);
-        
-        if (isNaN(num)) {
-            primeResult.textContent = '⚠️ Please enter a valid number!';
-            primeResult.className = 'result-display';
-            return;
-        }
-        
-        if (isPrime(num)) {
-            primeResult.textContent = `✅ ${num} is a Prime Number!`;
-            primeResult.className = 'result-display prime';
-        } else {
-            primeResult.textContent = `❌ ${num} is NOT a Prime Number`;
-            primeResult.className = 'result-display not-prime';
-        }
-    }
-    
-    // Generate primes up to limit
-    function generatePrimes() {
-        const limit = parseInt(generateLimit.value) || 100;
-        primesDisplay.innerHTML = '';
-        
-        const primes = [];
-        for (let i = 2; i <= limit; i++) {
-            if (isPrime(i)) primes.push(i);
-        }
-        
-        primes.forEach((prime, index) => {
-            const el = document.createElement('div');
-            el.className = 'prime-number';
-            el.textContent = prime;
-            el.style.animationDelay = `${index * 0.02}s`;
-            primesDisplay.appendChild(el);
-        });
-        
-        if (primes.length === 0) {
-            primesDisplay.innerHTML = '<p style="color: var(--text-secondary);">No primes found in range</p>';
-        }
-    }
-    
-    // Find primes in range
-    function findPrimesInRange() {
-        const start = parseInt(rangeStart.value) || 1;
-        const end = parseInt(rangeEnd.value) || 50;
-        rangeDisplay.innerHTML = '';
-        
-        const primes = [];
-        for (let i = Math.max(2, start); i <= end; i++) {
-            if (isPrime(i)) primes.push(i);
-        }
-        
-        primes.forEach((prime, index) => {
-            const el = document.createElement('div');
-            el.className = 'prime-number';
-            el.textContent = prime;
-            el.style.animationDelay = `${index * 0.02}s`;
-            rangeDisplay.appendChild(el);
-        });
-        
-        if (primes.length === 0) {
-            rangeDisplay.innerHTML = '<p style="color: var(--text-secondary);">No primes found in range</p>';
-        }
-    }
-    
-    // Event listeners
-    checkPrimeBtn.addEventListener('click', checkPrime);
-    primeInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') checkPrime();
-    });
-    
-    generatePrimesBtn.addEventListener('click', generatePrimes);
-    rangeBtn.addEventListener('click', findPrimesInRange);
-    
-    // Initial generation
-    generatePrimes();
-}
-
-// ============================================
-// TOWER OF HANOI
-// ============================================
-function getTowerOfHanoiHTML() {
-    return `
-        <div class="project-content">
-            <h2>🗼 Tower of Hanoi</h2>
-            <div class="hanoi-container">
-                <div class="controls">
-                    <label>
-                        Number of Disks:
-                        <input type="number" id="diskCount" min="3" max="7" value="3">
-                    </label>
-                    <button class="btn-solve" id="solveBtn">🎯 Solve</button>
-                    <button class="btn-reset" id="resetHanoi">Reset</button>
-                </div>
-                
-                <div class="stats">
-                    <div>Moves: <span id="moveCount">0</span></div>
-                    <div>Optimal: <span id="optimalMoves">7</span></div>
-                </div>
-                
-                <canvas id="hanoiCanvas" width="800" height="400"></canvas>
-            </div>
-        </div>
-        
-        <style>
-            .hanoi-container {
-                padding: 2rem;
-                text-align: center;
-            }
-            
-            .controls {
-                display: flex;
-                gap: 1rem;
-                justify-content: center;
-                align-items: center;
-                margin-bottom: 1rem;
-                flex-wrap: wrap;
-            }
-            
-            .controls label {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-            }
-            
-            .controls input {
-                width: 80px;
-                padding: 0.5rem;
-                font-size: 1rem;
-                border: 2px solid var(--border-color);
-                border-radius: 8px;
-                background: var(--bg-color);
-                color: var(--text-color);
-                text-align: center;
-            }
-            
-            .btn-solve {
-                background: var(--success-color);
-                color: white;
-                border: none;
-                padding: 0.75rem 2rem;
-                border-radius: 50px;
-                cursor: pointer;
-                font-size: 1rem;
-                transition: var(--transition);
-            }
-            
-            .btn-solve:hover {
-                transform: scale(1.05);
-            }
-            
-            .btn-solve:disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
-            }
-            
-            .stats {
-                display: flex;
-                gap: 2rem;
-                justify-content: center;
-                margin-bottom: 2rem;
-                font-size: 1.2rem;
-                font-weight: bold;
-            }
-            
-            .stats span {
-                color: var(--primary-color);
-            }
-            
-            #hanoiCanvas {
-                background: var(--surface-color);
-                border-radius: 15px;
-                box-shadow: var(--shadow);
-                max-width: 100%;
-                height: auto;
-                display: block;
-                margin: 0 auto;
-            }
-        </style>
-    `;
+function getProjectInstructions(projectName) {
+  // Return instructions from the object above
+  if (projectInstructions[projectName]) {
+    return projectInstructions[projectName];
+  }
+  // Fallback for missing instructions
+  return {
+    title: "ℹ️ How to Use This Project",
+    steps: ["Instructions coming soon. Try exploring the interface!"]
+  };
 }
 
 function initTowerOfHanoi() {
@@ -4357,4 +3078,52 @@ function initDerivativeCalculator() {
         const value = evaluate(nth, data.x);
         output.textContent = `f(x) = ${polynomialToString(data.coeffs)}\n\nDerivative used: ${polynomialToString(nth)}\nValue at x = ${formatNumber(data.x)} is ${formatNumber(value)}`;
     });
+}
+function initializeProject(projectName) {
+  const initializers = {
+    "tic-tac-toe": "initTicTacToe",
+    "rock-paper-scissor": "initRockPaperScissor",
+    "dice-rolling": "initDiceRolling",
+    "coin-flip": "initCoinFlip",
+    "blackjack-21": "initBlackjack",
+    "number-guessing": "initNumberGuessing",
+    hangman: "initHangman",
+    "word-scramble": "initWordScramble",
+    flames: "initFlames",
+    "dots-boxes": "initDotsBoxes",
+    "emoji-memory": "initEmojiMemoryGame",
+    fibonacci: "initFibonacci",
+    "binary-search": "initBinarySearch",
+    "bubble-sort": "initBubbleSort",
+    "progression-recognizer": "initProgressionRecognizer",
+    "pascal-triangle": "initPascalTriangle",
+    armstrong: "initArmstrong",
+    calculator: "initCalculator",
+    collatz: "initCollatz",
+    "prime-analyzer": "initPrimeAnalyzer",
+    "projectile-motion": "initProjectileMotion",
+    "coordinate-polar-transform": "initCoordinatePolarTransform",
+    "derivative-calculator": "initDerivativeCalculator",
+    "morse-code": "initMorseCode",
+    "tower-of-hanoi": "initTowerOfHanoi",
+    "number-converter": "initNumberConverter",
+    "typing-speed-tester": "initTypingSpeedTester",
+    "snake-game": "initSnakeGame",
+    "password-forge": "initPasswordForge",
+    "spot-the-difference": "initSpotTheDifference",
+    "whack-a-mole": "initWhackaMole",
+    "flappy-game": "initFlappyGame",
+    "productive-pet": "initProductivePet",
+    "simon-says": "initSimonSays",
+    "2048-game": "init2048Game",
+    "color-palette": "initColorPalette",
+    "math-quiz": "initMathQuiz",
+    "resume-analyzer": "initAIResumeAnalyzer",
+    "caesar-cipher": "initCaesarCipher"
+  };
+
+  const initializerName = initializers[projectName];
+  if (initializerName && typeof window[initializerName] === "function") {
+    window[initializerName]();
+  }
 }
